@@ -59,6 +59,7 @@ public partial class SingleConvertViewModel : ViewModelBase
     }
 
     [ObservableProperty] private bool _deleteOriginal;
+    [ObservableProperty] private bool _extractAllPages;
     [ObservableProperty] 
     [NotifyCanExecuteChangedFor(nameof(ConvertCommand))]
     [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
@@ -73,7 +74,7 @@ public partial class SingleConvertViewModel : ViewModelBase
     [RelayCommand]
     private void SelectFile()
     {
-        var filter = System.Windows.Application.Current?.Resources["Dialog_ImageFilter"] as string ?? "Images|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.tga;*.avif;*.heic;*.cr2;*.nef;*.arw;*.dng|All Files|*.*";
+        var filter = System.Windows.Application.Current?.Resources["Dialog_ImageFilter"] as string ?? "Images|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.tga;*.avif;*.heic;*.cr2;*.nef;*.arw;*.dng;*.psd;*.svg;*.gif;*.ico;*.tiff;*.tif;*.jxl|All Files|*.*";
         var title = System.Windows.Application.Current?.Resources["Dialog_SelectImageTitle"] as string ?? "Select image for conversion";
 
         var dialog = new Microsoft.Win32.OpenFileDialog
@@ -128,7 +129,8 @@ public partial class SingleConvertViewModel : ViewModelBase
             {
                 TargetFormat = TargetFormat,
                 Quality = Quality,
-                DeleteOriginalFiles = DeleteOriginal
+                DeleteOriginalFiles = DeleteOriginal,
+                ExtractAllPages = ExtractAllPages
             };
             
             _lastOutputDir = !string.IsNullOrWhiteSpace(TargetDirectory) 

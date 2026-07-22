@@ -14,7 +14,8 @@ public partial class MassConvertPage : Page
     private static readonly HashSet<string> _acceptedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".jpg", ".jpeg", ".png", ".webp", ".avif", ".bmp", ".tga",
-        ".tiff", ".tif", ".heic", ".cr2", ".cr3", ".nef", ".arw", ".dng"
+        ".tiff", ".tif", ".heic", ".cr2", ".cr3", ".nef", ".arw", ".dng",
+        ".psd", ".svg", ".gif", ".ico", ".jxl"
     };
 
     private void OnDragOver(object sender, System.Windows.DragEventArgs e)

@@ -8,4 +8,5 @@ public class ConversionOptions
     // Флаги из нашего обсуждения
     public bool IncludeSubfolders { get; set; } = true;
     public bool DeleteOriginalFiles { get; set; } = false;
+    public bool ExtractAllPages { get; set; }
 }

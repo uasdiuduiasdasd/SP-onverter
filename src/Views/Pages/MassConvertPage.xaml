@@ -149,6 +149,11 @@
                             <RadioButton Content="TGA" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=TGA}"/>
                             <RadioButton Content="AVIF" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=AVIF}"/>
                             <RadioButton Content="HEIC" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=HEIC}"/>
+                            <RadioButton Content="TIFF" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=TIFF}"/>
+                            <RadioButton Content="ICO" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=ICO}"/>
+                            <RadioButton Content="JXL" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=JXL}"/>
+                            <RadioButton Content="PDF" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=PDF}"/>
+                            <RadioButton Content="GIF" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=GIF}"/>
                         </WrapPanel>
 
                         <!-- Качество -->
@@ -173,6 +178,17 @@
                                 </Grid>
                             </Border>
                         </WrapPanel>
+
+                        <StackPanel Margin="0,0,0,12">
+                            <ui:ToggleSwitch IsChecked="{Binding DeleteOriginal, Mode=TwoWay}"
+                                             Content="{DynamicResource Convert_DeleteOriginal}"
+                                             ToolTip="{DynamicResource Convert_DeleteOriginal_Tooltip}"
+                                             Margin="0,0,0,10"/>
+                            
+                            <ui:ToggleSwitch IsChecked="{Binding ExtractAllPages, Mode=TwoWay}"
+                                             Content="{DynamicResource Convert_ExtractAllPages}"
+                                             ToolTip="{DynamicResource Convert_ExtractAllPages_Tooltip}"/>
+                        </StackPanel>
 
                         <!-- Progress Section -->
                         <StackPanel Margin="0,16,0,0">

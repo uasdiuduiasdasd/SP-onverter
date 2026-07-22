@@ -23,7 +23,7 @@
     
     <system:String x:Key="Settings_About">About</system:String>
     <system:String x:Key="Settings_VersionPrefix" xml:space="preserve">Version </system:String>
-    <system:String x:Key="Settings_Version">Version 1.0</system:String>
+    <system:String x:Key="Settings_Version">Version 1.1</system:String>
 
     <system:String x:Key="Mass_DropZoneTitle">Drag and drop folder here</system:String>
     <system:String x:Key="Mass_DropZoneSub">or select files to load</system:String>
@@ -64,7 +64,11 @@
     <system:String x:Key="Dialog_SelectImageTitle">Select image for conversion</system:String>
     <system:String x:Key="Dialog_SelectFolderTitle">Select target folder</system:String>
     <system:String x:Key="Dialog_SelectSourceFolderTitle">Select source folder</system:String>
-    <system:String x:Key="Dialog_ImageFilter">Image Files|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.tga;*.avif;*.heic;*.cr2;*.nef;*.arw;*.dng|All Files|*.*</system:String>
+    <system:String x:Key="Dialog_ImageFilter">Images|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.tga;*.avif;*.heic;*.cr2;*.nef;*.arw;*.dng;*.psd;*.svg;*.gif;*.ico;*.tiff;*.tif;*.jxl|All Files|*.*</system:String>
+    <system:String x:Key="Convert_DeleteOriginal">Delete originals</system:String>
+    <system:String x:Key="Convert_DeleteOriginal_Tooltip">Delete source files after successful conversion</system:String>
+    <system:String x:Key="Convert_ExtractAllPages">Extract all frames/pages</system:String>
+    <system:String x:Key="Convert_ExtractAllPages_Tooltip">Extract all pages from PDF/TIFF or frames from GIF/ICO</system:String>
     <system:String x:Key="Msg_SuccessTitle">Success</system:String>
     <system:String x:Key="Msg_SuccessSingle">Conversion completed successfully</system:String>
     <system:String x:Key="Msg_SuccessMass">Converted files: {0}</system:String>

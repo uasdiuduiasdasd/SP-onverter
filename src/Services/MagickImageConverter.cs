@@ -90,67 +90,94 @@ public class MagickImageConverter : IImageConverterService
         cancellationToken.ThrowIfCancellationRequested();
 
         string targetExt = "." + options.TargetFormat.ToLowerInvariant();
-        string newFilePath = _fileService.GetUniqueFilePath(filePath, outputDirectory, targetExt);
+        
+        var format = options.TargetFormat.ToUpperInvariant() switch
+        {
+            "JPG" => MagickFormat.Jpeg,
+            "JPEG" => MagickFormat.Jpeg,
+            "PNG" => MagickFormat.Png,
+            "WEBP" => MagickFormat.WebP,
+            "AVIF" => MagickFormat.Avif,
+            "BMP" => MagickFormat.Bmp,
+            "TGA" => MagickFormat.Tga,
+            "HEIC" => MagickFormat.Heic,
+            "TIFF" => MagickFormat.Tiff,
+            "ICO" => MagickFormat.Ico,
+            "JXL" => MagickFormat.Jxl,
+            "PDF" => MagickFormat.Pdf,
+            "GIF" => MagickFormat.Gif,
+            _ => MagickFormat.Jpeg
+        };
+
+        bool isNonAlphaFormat = format == MagickFormat.Jpeg || 
+                                format == MagickFormat.Bmp || 
+                                format == MagickFormat.Tga || 
+                                format == MagickFormat.Heic || 
+                                format == MagickFormat.Avif;
+
+        bool isQualityFormat = format == MagickFormat.Jpeg || 
+                               format == MagickFormat.WebP || 
+                               format == MagickFormat.Avif || 
+                               format == MagickFormat.Heic ||
+                               format == MagickFormat.Jxl;
+
+        int clampedQuality = Math.Clamp(options.Quality, 1, 100);
+
+        void ProcessAndSave(IMagickImage<ushort> img, string savePath)
+        {
+            img.AutoOrient();
+            img.Format = format;
+            if (isNonAlphaFormat && img.HasAlpha)
+            {
+                img.BackgroundColor = MagickColors.White;
+                img.Alpha(AlphaOption.Remove);
+            }
+            if (isQualityFormat)
+            {
+                img.Quality = (uint)clampedQuality;
+            }
+            img.Write(savePath);
+        }
+
+        var generatedFiles = new List<string>();
 
         // MagickImage.Write - CPU-интенсивная синхронная операция.
-        // Заворачиваем в Task.Run, чтобы гарантированно не заморозить UI-поток.
         await Task.Run(() =>
         {
-            using var image = new MagickImage(filePath);
-            
-            // Авто-ориентация на основе EXIF метаданных (для вертикальных фото с телефонов и камер)
-            image.AutoOrient();
-
-            var format = options.TargetFormat.ToUpperInvariant() switch
+            if (options.ExtractAllPages)
             {
-                "JPG" => MagickFormat.Jpeg,
-                "JPEG" => MagickFormat.Jpeg,
-                "PNG" => MagickFormat.Png,
-                "WEBP" => MagickFormat.WebP,
-                "AVIF" => MagickFormat.Avif,
-                "BMP" => MagickFormat.Bmp,
-                "TGA" => MagickFormat.Tga,
-                "HEIC" => MagickFormat.Heic,
-                _ => MagickFormat.Jpeg
-            };
-
-            image.Format = format;
-
-            // Если исходный файл имеет прозрачность (например, PNG логотип),
-            // а целевой формат ее не поддерживает (JPG, BMP, TGA, HEIC, AVIF), подставляем белый фон.
-            bool isNonAlphaFormat = format == MagickFormat.Jpeg || 
-                                    format == MagickFormat.Bmp || 
-                                    format == MagickFormat.Tga || 
-                                    format == MagickFormat.Heic || 
-                                    format == MagickFormat.Avif;
-
-            if (isNonAlphaFormat && image.HasAlpha)
-            {
-                image.BackgroundColor = MagickColors.White;
-                image.Alpha(AlphaOption.Remove);
+                using var collection = new MagickImageCollection(filePath);
+                int count = collection.Count;
+                int index = 1;
+                foreach (var img in collection)
+                {
+                    string extModifier = count > 1 ? $"_page{index}{targetExt}" : targetExt;
+                    string targetFile = _fileService.GetUniqueFilePath(filePath, outputDirectory, extModifier);
+                    ProcessAndSave(img, targetFile);
+                    generatedFiles.Add(targetFile);
+                    index++;
+                }
             }
-
-            // Качество (сжатие с потерями) имеет смысл только для этих форматов.
-            if (format == MagickFormat.Jpeg || 
-                format == MagickFormat.WebP || 
-                format == MagickFormat.Avif || 
-                format == MagickFormat.Heic)
+            else
             {
-                int clampedQuality = Math.Clamp(options.Quality, 1, 100);
-                image.Quality = (uint)clampedQuality;
+                using var image = new MagickImage(filePath);
+                string targetFile = _fileService.GetUniqueFilePath(filePath, outputDirectory, targetExt);
+                ProcessAndSave(image, targetFile);
+                generatedFiles.Add(targetFile);
             }
-            
-            image.Write(newFilePath);
             
         }, cancellationToken);
 
-        // Удаляем оригинал только после УСПЕШНОЙ записи нового отличного файла
+        // Удаляем оригинал только после УСПЕШНОЙ записи новых файлов
         if (options.DeleteOriginalFiles && File.Exists(filePath))
         {
             string fullSource = Path.GetFullPath(filePath);
-            string fullTarget = Path.GetFullPath(newFilePath);
+            
+            bool safeToDelete = generatedFiles.All(gf => 
+                !string.Equals(fullSource, Path.GetFullPath(gf), StringComparison.OrdinalIgnoreCase) && 
+                File.Exists(gf));
 
-            if (!string.Equals(fullSource, fullTarget, StringComparison.OrdinalIgnoreCase) && File.Exists(newFilePath))
+            if (safeToDelete && generatedFiles.Count > 0)
             {
                 try 
                 { 

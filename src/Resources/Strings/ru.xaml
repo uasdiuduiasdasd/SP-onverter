@@ -23,7 +23,7 @@
     
     <system:String x:Key="Settings_About">О программе</system:String>
     <system:String x:Key="Settings_VersionPrefix" xml:space="preserve">Версия </system:String>
-    <system:String x:Key="Settings_Version">Версия 1.0</system:String>
+    <system:String x:Key="Settings_Version">Версия 1.1</system:String>
 
     <system:String x:Key="Mass_DropZoneTitle">Перетащите папку сюда</system:String>
     <system:String x:Key="Mass_DropZoneSub">или выберите файлы для загрузки</system:String>
@@ -57,6 +57,10 @@
     <system:String x:Key="Single_DropZoneTitle">Перетащите файл сюда</system:String>
     <system:String x:Key="Single_DropZoneSub">или нажмите для выбора</system:String>
     <system:String x:Key="Single_FileInfo">Информация о файле</system:String>
+    <system:String x:Key="Convert_DeleteOriginal">Удалить оригиналы</system:String>
+    <system:String x:Key="Convert_DeleteOriginal_Tooltip">Удалить исходные файлы после успешной конвертации</system:String>
+    <system:String x:Key="Convert_ExtractAllPages">Извлечь все кадры/страницы</system:String>
+    <system:String x:Key="Convert_ExtractAllPages_Tooltip">Извлекать все страницы из PDF/TIFF или кадры из GIF/ICO</system:String>
     <system:String x:Key="Single_SourceFile">Путь к картинке</system:String>
     <system:String x:Key="Single_TargetFile">Путь сохранения конвертированной картинки</system:String>
 
@@ -64,7 +68,7 @@
     <system:String x:Key="Dialog_SelectImageTitle">Выберите изображение для конвертации</system:String>
     <system:String x:Key="Dialog_SelectFolderTitle">Выберите папку назначения</system:String>
     <system:String x:Key="Dialog_SelectSourceFolderTitle">Выберите папку с исходными изображениями</system:String>
-    <system:String x:Key="Dialog_ImageFilter">Изображения|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.tga;*.avif;*.heic;*.cr2;*.nef;*.arw;*.dng|Все файлы|*.*</system:String>
+    <system:String x:Key="Dialog_ImageFilter">Изображения|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.tga;*.avif;*.heic;*.cr2;*.nef;*.arw;*.dng;*.psd;*.svg;*.gif;*.ico;*.tiff;*.tif;*.jxl|Все файлы|*.*</system:String>
     <system:String x:Key="Msg_SuccessTitle">Успех</system:String>
     <system:String x:Key="Msg_SuccessSingle">Конвертация успешно завершена</system:String>
     <system:String x:Key="Msg_SuccessMass">Конвертировано файлов: {0}</system:String>

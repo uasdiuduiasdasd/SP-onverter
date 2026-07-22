@@ -1,7 +1,7 @@
 [Setup]
 AppId={{5E97D453-6258-45F2-A62E-093BA9B8C533}
 AppName=SP Converter
-AppVersion=1.0
+AppVersion=1.1
 AppPublisher=SP Software
 AppPublisherURL=https://github.com/uasdiuduiasdasd/SP-onverter
 AppSupportURL=https://github.com/uasdiuduiasdasd/SP-onverter/issues

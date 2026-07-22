@@ -12,7 +12,7 @@ public class LocalFileService : IFileManagementService
     private static readonly HashSet<string> _supportedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".jpg", ".jpeg", ".png", ".webp", ".avif", ".bmp", ".tiff", ".tif",
-        ".tga", ".cr2", ".cr3", ".nef", ".arw", ".dng", ".heic"
+        ".tga", ".cr2", ".cr3", ".nef", ".arw", ".dng", ".heic", ".psd", ".svg", ".gif", ".ico", ".jxl", ".pdf"
     };
 
     private static readonly object _fileLock = new();

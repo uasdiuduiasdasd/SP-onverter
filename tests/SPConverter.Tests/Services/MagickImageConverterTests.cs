@@ -131,4 +131,59 @@ public class MagickImageConverterTests : IDisposable
         File.Exists(sourceFile).Should().BeFalse();
         File.Exists(Path.Combine(_tempDir, "test_image.webp")).Should().BeTrue();
     }
+    [Theory]
+    [InlineData("JXL", MagickFormat.Jxl)]
+    [InlineData("TIFF", MagickFormat.Tiff)]
+    [InlineData("PDF", MagickFormat.Pdf)]
+    [InlineData("ICO", MagickFormat.Ico)]
+    [InlineData("GIF", MagickFormat.Gif)]
+    public async Task ConvertFileAsync_ShouldSupportNewFormats(string targetFormat, MagickFormat expectedFormat)
+    {
+        // Arrange
+        var sut = new MagickImageConverter(_fileServiceMock.Object);
+        var sourceFile = CreateTestImage("png");
+        
+        var options = new ConversionOptions
+        {
+            TargetFormat = targetFormat,
+            Quality = 90,
+            DeleteOriginalFiles = false
+        };
+
+        // Act
+        await sut.ConvertFileAsync(sourceFile, _tempDir, options, CancellationToken.None);
+
+        // Assert
+        var expectedFile = Path.Combine(_tempDir, "test_image." + targetFormat.ToLowerInvariant());
+        File.Exists(expectedFile).Should().BeTrue();
+        
+        if (targetFormat != "PDF")
+        {
+            using var outputImage = new MagickImage(expectedFile);
+            outputImage.Format.Should().Be(expectedFormat);
+        }
+    }
+
+    [Fact]
+    public async Task ConvertFileAsync_ShouldClampQuality()
+    {
+        // Arrange
+        var sut = new MagickImageConverter(_fileServiceMock.Object);
+        var sourceFile = CreateTestImage("png");
+        
+        var options = new ConversionOptions
+        {
+            TargetFormat = "JPEG",
+            Quality = 150, // More than 100
+            DeleteOriginalFiles = false
+        };
+
+        // Act
+        await sut.ConvertFileAsync(sourceFile, _tempDir, options, CancellationToken.None);
+
+        // Assert
+        var expectedFile = Path.Combine(_tempDir, "test_image.jpeg");
+        using var outputImage = new MagickImage(expectedFile);
+        Assert.True(outputImage.Quality <= 100);
+    }
 }

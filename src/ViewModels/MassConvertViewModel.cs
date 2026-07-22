@@ -63,6 +63,7 @@ public partial class MassConvertViewModel : ViewModelBase
     }
 
     [ObservableProperty] private bool _deleteOriginal;
+    [ObservableProperty] private bool _extractAllPages;
     
     [ObservableProperty] 
     [NotifyCanExecuteChangedFor(nameof(ConvertCommand))]
@@ -237,7 +238,8 @@ public partial class MassConvertViewModel : ViewModelBase
             {
                 TargetFormat = TargetFormat,
                 Quality = Quality,
-                DeleteOriginalFiles = DeleteOriginal
+                DeleteOriginalFiles = DeleteOriginal,
+                ExtractAllPages = ExtractAllPages
             };
             
             _lastOutputDir = string.IsNullOrWhiteSpace(TargetDirectory) 
