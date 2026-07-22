@@ -28,7 +28,7 @@ public class MainWindowTests
         double height = double.Parse(heightAttr ?? "0");
         double minHeight = double.Parse(minHeightAttr ?? "0");
 
-        height.Should().BeGreaterThanOrEqualTo(800, "Window height must be large enough to show all controls without scrolling");
+        height.Should().BeGreaterThanOrEqualTo(810, "Window height must be large enough to show all controls without scrolling");
         minHeight.Should().BeGreaterThanOrEqualTo(650, "Window minimum height must prevent UI squishing");
     }
 }
