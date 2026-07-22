@@ -1,0 +1,54 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="AppBackgroundBrush" Color="Transparent" /> 
+    <SolidColorBrush x:Key="AppSolidBackgroundBrush" Color="#000000" />
+    <SolidColorBrush x:Key="AppTextBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppCardBrush" Color="#0AFFFFFF" />
+    <SolidColorBrush x:Key="AppCardBorderBrush" Color="#33FFFFFF" />
+    <SolidColorBrush x:Key="AppAccentBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppAccentHoverBrush" Color="#d3d3d3" />
+    <SolidColorBrush x:Key="AppAccentForegroundBrush" Color="#000000" />
+    <SolidColorBrush x:Key="AppInputBrush" Color="#000000" />
+    <SolidColorBrush x:Key="AppInputBorderBrush" Color="#333333" />
+    <SolidColorBrush x:Key="AppNavBorderBrush" Color="#262626" />
+    <SolidColorBrush x:Key="AppButtonSecondaryBrush" Color="#14FFFFFF" />
+    <SolidColorBrush x:Key="AppButtonSecondaryBorderBrush" Color="#333333" />
+    <SolidColorBrush x:Key="AppButtonSecondaryHoverBrush" Color="#222222" />
+    <SolidColorBrush x:Key="AppToggleInactiveHoverBrush" Color="#222222" />
+
+    <!-- Drag & Drop Zone -->
+    <SolidColorBrush x:Key="AppDragDropBackgroundBrush" Color="#FFFFFF" Opacity="0.05" />
+    <SolidColorBrush x:Key="AppDragDropBackgroundHoverBrush" Color="#E0E0E0" Opacity="0.1" />
+    <SolidColorBrush x:Key="AppDragDropBorderBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppDragDropForegroundBrush" Color="#FFFFFF" />
+
+    <!-- Progress Bar BG -->
+    <SolidColorBrush x:Key="AppProgressBackgroundBrush" Color="#131313" />
+
+    <!-- Wpf.Ui Accent Overrides -->
+    <SolidColorBrush x:Key="SystemAccentColorPrimaryBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SystemAccentColorSecondaryBrush" Color="#d3d3d3" />
+    <SolidColorBrush x:Key="SystemAccentColorTertiaryBrush" Color="#a3a3a3" />
+    <SolidColorBrush x:Key="SystemAccentColorLight1Brush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SystemAccentColorLight2Brush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SystemAccentColorLight3Brush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SystemAccentColorDark1Brush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SystemAccentColorDark2Brush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SystemAccentColorDark3Brush" Color="#FFFFFF" />
+    
+    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#E0E0E0" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#C0C0C0" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOnDisabled" Color="#808080" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#000000" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#000000" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="#000000" />
+    
+    <SolidColorBrush x:Key="CheckBoxFillChecked" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="CheckBoxFillCheckedPointerOver" Color="#E0E0E0" />
+    <SolidColorBrush x:Key="CheckBoxFillCheckedPressed" Color="#C0C0C0" />
+    
+    <Color x:Key="SystemAccentColorPrimary">#FFFFFF</Color>
+    <Color x:Key="SystemAccentColorSecondary">#d3d3d3</Color>
+    <Color x:Key="SystemAccentColorTertiary">#a3a3a3</Color>
+</ResourceDictionary>
