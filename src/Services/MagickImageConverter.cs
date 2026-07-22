@@ -144,9 +144,11 @@ public class MagickImageConverter : IImageConverterService
         // MagickImage.Write - CPU-интенсивная синхронная операция.
         await Task.Run(() =>
         {
+            using var fileStream = File.OpenRead(filePath);
+            
             if (options.ExtractAllPages)
             {
-                using var collection = new MagickImageCollection(filePath);
+                using var collection = new MagickImageCollection(fileStream);
                 int count = collection.Count;
                 int index = 1;
                 foreach (var img in collection)
@@ -160,7 +162,7 @@ public class MagickImageConverter : IImageConverterService
             }
             else
             {
-                using var image = new MagickImage(filePath);
+                using var image = new MagickImage(fileStream);
                 string targetFile = _fileService.GetUniqueFilePath(filePath, outputDirectory, targetExt);
                 ProcessAndSave(image, targetFile);
                 generatedFiles.Add(targetFile);
