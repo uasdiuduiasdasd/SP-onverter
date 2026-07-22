@@ -1,0 +1,27 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="AppBackgroundBrush" Color="Transparent" /> 
+    <SolidColorBrush x:Key="AppSolidBackgroundBrush" Color="#1b1b1b" />
+    <SolidColorBrush x:Key="AppTextBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppCardBrush" Color="#252525" />
+    <SolidColorBrush x:Key="AppCardBorderBrush" Color="#404040" />
+    <SolidColorBrush x:Key="AppAccentBrush" Color="#46a6ff" />
+    <SolidColorBrush x:Key="AppAccentHoverBrush" Color="#52c5ff" />
+    <SolidColorBrush x:Key="AppAccentForegroundBrush" Color="#000000" />
+    <SolidColorBrush x:Key="AppInputBrush" Color="#1A1A1A" />
+    <SolidColorBrush x:Key="AppInputBorderBrush" Color="#404040" />
+    <SolidColorBrush x:Key="AppNavBorderBrush" Color="#303030" />
+    <SolidColorBrush x:Key="AppButtonSecondaryBrush" Color="#333333" />
+    <SolidColorBrush x:Key="AppButtonSecondaryBorderBrush" Color="#404040" />
+    <SolidColorBrush x:Key="AppButtonSecondaryHoverBrush" Color="#3b3b3b" />
+    <SolidColorBrush x:Key="AppToggleInactiveHoverBrush" Color="#3b3b3b" />
+
+    <!-- Drag & Drop Zone -->
+    <SolidColorBrush x:Key="AppDragDropBackgroundBrush" Color="#10273B" Opacity="0.1" />
+    <SolidColorBrush x:Key="AppDragDropBackgroundHoverBrush" Color="#3471AA" Opacity="0.15" />
+    <SolidColorBrush x:Key="AppDragDropBorderBrush" Color="#46a6ff" />
+    <SolidColorBrush x:Key="AppDragDropForegroundBrush" Color="#46a6ff" />
+
+    <!-- Progress Bar BG -->
+    <SolidColorBrush x:Key="AppProgressBackgroundBrush" Color="#333333" />
+</ResourceDictionary>

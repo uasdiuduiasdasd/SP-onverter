@@ -1,0 +1,23 @@
+# Build & Output Directories
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+[Dd]ist/
+publish*/
+
+# Visual Studio & IDEs
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Agent & Temp Files
+.agents/
+*.tmp
+*.log
+skills-lock.json
+
+# Personal Notes
+правки.txt

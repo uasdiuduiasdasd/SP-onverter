@@ -1,0 +1,81 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    <system:String x:Key="Nav_MassConvert">Массовая конвертация</system:String>
+    <system:String x:Key="Nav_SingleConvert">Один файл</system:String>
+    <system:String x:Key="Nav_Settings">Настройки</system:String>
+
+    <system:String x:Key="Settings_Title">Настройки</system:String>
+    <system:String x:Key="Settings_Personalization">Персонализация</system:String>
+    <system:String x:Key="Settings_ThemeTitle">Тема оформления</system:String>
+    <system:String x:Key="Settings_ThemeDesc">Выберите режим отображения приложения</system:String>
+    <system:String x:Key="Theme_Light">Светлая</system:String>
+    <system:String x:Key="Theme_Dark">Темная</system:String>
+    <system:String x:Key="Theme_System">Системная</system:String>
+    <system:String x:Key="Theme_BW">Черно-белая</system:String>
+    
+    <system:String x:Key="Settings_TransparencyTitle">Эффекты прозрачности</system:String>
+    <system:String x:Key="Settings_TransparencyDesc">Использовать материалы Mica и Acrylic</system:String>
+    
+    <system:String x:Key="Settings_General">Основные</system:String>
+    <system:String x:Key="Settings_LanguageTitle">Язык приложения</system:String>
+    <system:String x:Key="Settings_LanguageDesc">Выберите язык интерфейса</system:String>
+    
+    <system:String x:Key="Settings_About">О программе</system:String>
+    <system:String x:Key="Settings_VersionPrefix">Версия </system:String>
+    <system:String x:Key="Settings_Version">Версия 1.0</system:String>
+
+    <system:String x:Key="Mass_DropZoneTitle">Перетащите папку сюда</system:String>
+    <system:String x:Key="Mass_DropZoneSub">или выберите файлы для загрузки</system:String>
+    <system:String x:Key="Mass_SourceDir">Папка с исходными файлами</system:String>
+    <system:String x:Key="Mass_TargetDir">Папка назначения</system:String>
+    <system:String x:Key="Mass_Browse">Обзор...</system:String>
+    <system:String x:Key="Mass_IncludeSubfolders">Включая вложенные папки</system:String>
+    <system:String x:Key="Mass_Format">Формат конвертации</system:String>
+    <system:String x:Key="Mass_Quality">Качество</system:String>
+    
+    <system:String x:Key="Quality_Medium">Среднее</system:String>
+    <system:String x:Key="Quality_High">Высокое</system:String>
+    <system:String x:Key="Quality_Max">Максимальное</system:String>
+    <system:String x:Key="Quality_Custom">Свое</system:String>
+    
+    <system:String x:Key="Action_Cancel">Отменить</system:String>
+    <system:String x:Key="Action_Convert">Конвертировать</system:String>
+
+    <system:String x:Key="Single_Title">Конвертация одного файла</system:String>
+    <system:String x:Key="Single_Desc">Выберите или перетащите одно изображение для быстрой обработки.</system:String>
+    <system:String x:Key="Single_FormatsSupported">Поддерживаются популярные форматы</system:String>
+    <system:String x:Key="Mass_Desc">Конвертация всех изображений в выбранных папках с применением общих настроек.</system:String>
+    <system:String x:Key="Quality_Low">Низкое</system:String>
+    
+    <system:String x:Key="Mass_FolderNotSelected">Папка не выбрана</system:String>
+    <system:String x:Key="Mass_Preparing">Подготовка...</system:String>
+    <system:String x:Key="Mass_FilesFound">Найдено файлов: {0}</system:String>
+    <system:String x:Key="Mass_Converting">Конвертация: {0} из {1}</system:String>
+    <system:String x:Key="Mass_Completed">Успешно завершено!</system:String>
+
+    <system:String x:Key="Single_DropZoneTitle">Перетащите файл сюда</system:String>
+    <system:String x:Key="Single_DropZoneSub">или нажмите для выбора</system:String>
+    <system:String x:Key="Single_FileInfo">Информация о файле</system:String>
+    <system:String x:Key="Single_SourceFile">Путь к картинке</system:String>
+    <system:String x:Key="Single_TargetFile">Путь сохранения конвертированной картинки</system:String>
+
+    <!-- Dialogs & Notifications -->
+    <system:String x:Key="Dialog_SelectImageTitle">Выберите изображение для конвертации</system:String>
+    <system:String x:Key="Dialog_SelectFolderTitle">Выберите папку назначения</system:String>
+    <system:String x:Key="Dialog_SelectSourceFolderTitle">Выберите папку с исходными изображениями</system:String>
+    <system:String x:Key="Dialog_ImageFilter">Изображения|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.tga;*.avif;*.heic;*.cr2;*.nef;*.arw;*.dng|Все файлы|*.*</system:String>
+    <system:String x:Key="Msg_SuccessTitle">Успех</system:String>
+    <system:String x:Key="Msg_SuccessSingle">Конвертация успешно завершена</system:String>
+    <system:String x:Key="Msg_SuccessMass">Конвертировано файлов: {0}</system:String>
+    <system:String x:Key="Msg_CancelledTitle">Отменено</system:String>
+    <system:String x:Key="Msg_CancelledSingle">Конвертация была отменена</system:String>
+    <system:String x:Key="Msg_CancelledMass">Массовая конвертация была отменена</system:String>
+    <system:String x:Key="Msg_ErrorTitle">Ошибка</system:String>
+    <system:String x:Key="Msg_ErrorSingle">Не удалось конвертировать: {0}</system:String>
+    <system:String x:Key="Msg_ErrorScan">Ошибка сканирования: {0}</system:String>
+    <system:String x:Key="Msg_ScanProgress">Сканирование папки...</system:String>
+    <system:String x:Key="Msg_OpenFolder">Открыть папку</system:String>
+    <system:String x:Key="Msg_SubfoldersHintTitle">Требуются вложенные папки</system:String>
+    <system:String x:Key="Msg_SubfoldersHint">В этой папке нет картинок, но есть подпапки. Включите галочку «Включая вложенные папки».</system:String>
+</ResourceDictionary>
