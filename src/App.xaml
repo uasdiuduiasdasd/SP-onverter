@@ -136,15 +136,46 @@
                                       BorderThickness="{TemplateBinding BorderThickness}"
                                       CornerRadius="4"
                                       Padding="{TemplateBinding Padding}">
-                                  <ContentPresenter ContentSource="Header"
-                                                    RecognizesAccessKey="True"
-                                                    TextElement.Foreground="{TemplateBinding Foreground}"
-                                                    TextElement.FontSize="13" />
+                                  <Grid>
+                                      <Grid.ColumnDefinitions>
+                                          <ColumnDefinition Width="16" />
+                                          <ColumnDefinition Width="*" />
+                                      </Grid.ColumnDefinitions>
+                                      <TextBlock x:Name="checkGlyph"
+                                                 Grid.Column="0"
+                                                 Text="✓"
+                                                 Visibility="Hidden"
+                                                 HorizontalAlignment="Left"
+                                                 VerticalAlignment="Center"
+                                                 Foreground="{TemplateBinding Foreground}"
+                                                 FontSize="12"
+                                                 FontWeight="SemiBold" />
+                                      <ContentPresenter x:Name="headerPresenter"
+                                                        Grid.Column="1"
+                                                        ContentSource="Header"
+                                                        RecognizesAccessKey="True"
+                                                        TextElement.Foreground="{TemplateBinding Foreground}"
+                                                        TextElement.FontSize="13" />
+                                  </Grid>
                               </Border>
                               <ControlTemplate.Triggers>
                                   <Trigger Property="IsHighlighted" Value="True">
                                       <Setter TargetName="border" Property="Background" Value="{DynamicResource AppToggleInactiveHoverBrush}" />
                                   </Trigger>
+                                  <Trigger Property="IsChecked" Value="True">
+                                      <Setter TargetName="border" Property="Background" Value="{DynamicResource AppAccentBrush}" />
+                                      <Setter Property="Foreground" Value="{DynamicResource AppAccentForegroundBrush}" />
+                                      <Setter TargetName="checkGlyph" Property="Visibility" Value="Visible" />
+                                      <Setter TargetName="headerPresenter" Property="TextElement.FontWeight" Value="SemiBold" />
+                                  </Trigger>
+                                  <MultiTrigger>
+                                      <MultiTrigger.Conditions>
+                                          <Condition Property="IsChecked" Value="True" />
+                                          <Condition Property="IsHighlighted" Value="True" />
+                                      </MultiTrigger.Conditions>
+                                      <Setter TargetName="border" Property="Background" Value="{DynamicResource AppAccentHoverBrush}" />
+                                      <Setter Property="Foreground" Value="{DynamicResource AppAccentForegroundBrush}" />
+                                  </MultiTrigger>
                                   <Trigger Property="IsEnabled" Value="False">
                                       <Setter Property="Opacity" Value="0.55" />
                                   </Trigger>

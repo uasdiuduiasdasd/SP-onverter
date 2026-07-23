@@ -234,21 +234,24 @@
                                 Style="{StaticResource OtherFormatButtonStyle}"
                                 Click="OnOtherFormatsClick">
                             <Button.ContextMenu>
-                                <ContextMenu Background="{DynamicResource AppPopupBrush}" BorderBrush="{DynamicResource AppPopupBorderBrush}" Placement="Bottom">
-                                    <MenuItem Header="JPEG" Tag="JPEG" Click="OnOtherFormatMenuItemClick"/>
-                                    <MenuItem Header="TIFF" Tag="TIFF" Click="OnOtherFormatMenuItemClick"/>
-                                    <MenuItem Header="BMP" Tag="BMP" Click="OnOtherFormatMenuItemClick"/>
-                                    <MenuItem Header="ICO" Tag="ICO" Click="OnOtherFormatMenuItemClick"/>
-                                    <MenuItem Header="TGA" Tag="TGA" Click="OnOtherFormatMenuItemClick"/>
+                                <ContextMenu Background="{DynamicResource AppPopupBrush}"
+                                             BorderBrush="{DynamicResource AppPopupBorderBrush}"
+                                             Placement="Bottom"
+                                             DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                    <MenuItem Header="JPEG" Tag="JPEG" IsCheckable="True" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=JPEG}" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="TIFF" Tag="TIFF" IsCheckable="True" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=TIFF}" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="BMP" Tag="BMP" IsCheckable="True" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=BMP}" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="ICO" Tag="ICO" IsCheckable="True" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=ICO}" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="TGA" Tag="TGA" IsCheckable="True" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=TGA}" Click="OnOtherFormatMenuItemClick"/>
                                     <Separator/>
-                                    <MenuItem Header="SVG" Tag="SVG" Click="OnOtherFormatMenuItemClick"/>
-                                    <MenuItem Header="PSD" Tag="PSD" Click="OnOtherFormatMenuItemClick"/>
-                                    <MenuItem Header="DDS" Tag="DDS" Click="OnOtherFormatMenuItemClick"/>
-                                    <MenuItem Header="EXR" Tag="EXR" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="SVG" Tag="SVG" IsCheckable="True" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=SVG}" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="PSD" Tag="PSD" IsCheckable="True" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=PSD}" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="DDS" Tag="DDS" IsCheckable="True" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=DDS}" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="EXR" Tag="EXR" IsCheckable="True" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=EXR}" Click="OnOtherFormatMenuItemClick"/>
                                     <Separator/>
-                                    <MenuItem Header="PPM" Tag="PPM" Click="OnOtherFormatMenuItemClick"/>
-                                    <MenuItem Header="PGM" Tag="PGM" Click="OnOtherFormatMenuItemClick"/>
-                                    <MenuItem Header="PBM" Tag="PBM" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="PPM" Tag="PPM" IsCheckable="True" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=PPM}" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="PGM" Tag="PGM" IsCheckable="True" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=PGM}" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="PBM" Tag="PBM" IsCheckable="True" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=PBM}" Click="OnOtherFormatMenuItemClick"/>
                                 </ContextMenu>
                             </Button.ContextMenu>
                         </Button>

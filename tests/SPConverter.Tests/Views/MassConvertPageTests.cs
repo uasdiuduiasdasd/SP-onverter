@@ -32,6 +32,18 @@ public class MassConvertPageTests
     }
 
     [Fact]
+    public void MassConvertPage_ShouldBindOtherFormatsToCurrentSelection()
+    {
+        XElement root = LoadMassConvertPageRoot();
+        string xaml = root.ToString(SaveOptions.DisableFormatting);
+
+        xaml.Should().Contain("DataContext=\"{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}\"");
+        xaml.Should().Contain("IsCheckable=\"True\"");
+        xaml.Should().Contain("IsChecked=\"{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=JPEG}\"");
+        xaml.Should().Contain("IsChecked=\"{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=PBM}\"");
+    }
+
+    [Fact]
     public void MassConvertPage_ShouldKeepCustomQualityInputInlineAndCompact()
     {
         XElement root = LoadMassConvertPageRoot();

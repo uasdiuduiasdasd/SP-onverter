@@ -80,6 +80,28 @@ public class AppStyleTests
         separatorMarkup.Should().Contain("AppPopupBorderBrush");
     }
 
+    [Fact]
+    public void PopupMenuItems_ShouldShowCheckedSelectionClearly()
+    {
+        XElement appResources = LoadApplicationResources();
+
+        XElement? menuItemStyle = appResources
+            .Descendants()
+            .FirstOrDefault(element =>
+                element.Name.LocalName == "Style"
+                && element.Attribute("TargetType")?.Value == "MenuItem");
+
+        menuItemStyle.Should().NotBeNull("the current format in the Other menu must be visually obvious");
+
+        string menuItemMarkup = menuItemStyle!.ToString(SaveOptions.DisableFormatting);
+
+        menuItemMarkup.Should().Contain("checkGlyph");
+        menuItemMarkup.Should().Contain("Text=\"✓\"");
+        menuItemMarkup.Should().Contain("Property=\"IsChecked\" Value=\"True\"");
+        menuItemMarkup.Should().Contain("AppAccentBrush");
+        menuItemMarkup.Should().Contain("AppAccentForegroundBrush");
+    }
+
     private static XElement LoadApplicationResources()
     {
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
