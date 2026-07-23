@@ -2,234 +2,354 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-      Title="Массовая конвертация"
+      Title="Конвертация"
       Background="Transparent"
       FontFamily="Segoe UI Variable, Segoe UI, sans-serif">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  PreviewMouseWheel="OnPageScrollViewerPreviewMouseWheel">
         <Grid Margin="20,12,20,12">
+            <Grid.Resources>
+                <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+                <Style x:Key="SmartDragDropButtonStyle" TargetType="Button" BasedOn="{StaticResource DragDropButtonStyle}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding DragDropState}" Value="Ready">
+                            <Setter Property="Background" Value="{DynamicResource AppDragDropBackgroundHoverBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource AppAccentBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource AppAccentBrush}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding DragDropState}" Value="Partial">
+                            <Setter Property="Background" Value="{DynamicResource AppDragDropPartialBackgroundBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource AppWarningBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource AppWarningBrush}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding DragDropState}" Value="Invalid">
+                            <Setter Property="Background" Value="{DynamicResource AppDragDropInvalidBackgroundBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource AppDangerBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource AppDangerBrush}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+
+                <Style x:Key="OtherFormatButtonStyle" TargetType="Button">
+                    <Setter Property="Background" Value="{DynamicResource AppButtonSecondaryBrush}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource AppButtonSecondaryBorderBrush}" />
+                    <Setter Property="BorderThickness" Value="1" />
+                    <Setter Property="Cursor" Value="Hand" />
+                    <Setter Property="FontWeight" Value="SemiBold" />
+                    <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
+                    <Setter Property="Margin" Value="0,0,6,6" />
+                    <Setter Property="Padding" Value="14,7" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="4">
+                                    <ContentPresenter HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      Margin="{TemplateBinding Padding}"
+                                                      TextElement.Foreground="{TemplateBinding Foreground}"
+                                                      TextElement.FontSize="13"
+                                                      TextElement.FontWeight="{TemplateBinding FontWeight}" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource AppButtonSecondaryHoverBrush}" />
+                                    </Trigger>
+                                    <DataTrigger Binding="{Binding IsOtherFormatSelected}" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource AppAccentBrush}" />
+                                        <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource AppAccentBrush}" />
+                                        <Setter Property="Foreground" Value="{DynamicResource AppAccentForegroundBrush}" />
+                                    </DataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsOtherFormatSelected}" Value="True" />
+                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter TargetName="border" Property="Background" Value="{DynamicResource AppAccentHoverBrush}" />
+                                        <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource AppAccentHoverBrush}" />
+                                        <Setter Property="Foreground" Value="{DynamicResource AppAccentForegroundBrush}" />
+                                    </MultiDataTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+
+                <Style x:Key="QualityChipStyle" TargetType="RadioButton" BasedOn="{StaticResource ChipToggleStyle}">
+                    <Setter Property="FontSize" Value="12" />
+                    <Setter Property="Margin" Value="0,0,5,6" />
+                    <Setter Property="Padding" Value="8,5" />
+                </Style>
+            </Grid.Resources>
+
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-        <Grid.Resources>
-            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        </Grid.Resources>
+            <Border Grid.Row="0"
+                    Background="{DynamicResource AppCardBrush}"
+                    BorderBrush="{DynamicResource AppCardBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="18,14"
+                    Margin="0,0,0,12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
+                    <Button Grid.Row="0"
+                            Style="{StaticResource SmartDragDropButtonStyle}"
+                            Command="{Binding BrowseFileCommand}"
+                            AllowDrop="True"
+                            DragEnter="OnDragEnter"
+                            PreviewDragOver="OnDragOver"
+                            DragLeave="OnDragLeave"
+                            Drop="OnDrop"
+                            Height="118"
+                            Margin="0,0,0,12">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <ui:SymbolIcon Symbol="Document24" FontSize="32" Margin="0,0,0,6"/>
+                            <TextBlock Text="{Binding DropZoneTitle}" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                            <TextBlock Text="{Binding DropZoneSubtitle}" FontSize="11" Opacity="0.75" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
 
-        <!-- Карточка путей -->
-        <Grid Grid.Row="2" Margin="0,0,0,12">
-                    <!-- Тень -->
-                    <Border Background="{DynamicResource AppCardBrush}" CornerRadius="8">
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.03" Color="Black" />
-                        </Border.Effect>
-                    </Border>
-                    
-                    <!-- Контент -->
-                    <Border Background="{DynamicResource AppCardBrush}" 
-                            BorderBrush="{DynamicResource AppCardBorderBrush}" 
-                            BorderThickness="1" CornerRadius="8" Padding="18,14"
-                            VerticalAlignment="Top">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                        
-                        <!-- Drag and Drop Zone -->
-                        <Button Grid.Row="0" Style="{StaticResource DragDropButtonStyle}" Command="{Binding BrowseSourceCommand}" AllowDrop="True" PreviewDragOver="OnDragOver" Drop="OnDrop" Height="120" Margin="0,0,0,12">
-                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <ui:SymbolIcon Symbol="Folder24" FontSize="32" Margin="0,0,0,6"/>
-                                <TextBlock Text="{DynamicResource Mass_DropZoneTitle}" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,2"/>
-                                <TextBlock Text="{DynamicResource Mass_DropZoneSub}" FontSize="11" Opacity="0.7" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
- 
-                        <!-- Папка с исходными файлами -->
-                        <TextBlock Grid.Row="1" Text="{DynamicResource Mass_SourceDir}" FontWeight="SemiBold" Margin="0,0,0,5" Foreground="{DynamicResource AppTextBrush}" FontSize="13"/>
-                        <Grid Grid.Row="2" Margin="0,0,0,12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            
-                            <Border Grid.Column="0" Background="{DynamicResource AppInputBrush}" BorderBrush="{DynamicResource AppInputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10,6">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <ui:SymbolIcon Grid.Column="0" Symbol="FolderOpen24" FontSize="16" Foreground="{DynamicResource AppTextBrush}" Opacity="0.5" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Text="{Binding SourceDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BorderlessTextBoxStyle}" />
-                                    <Button Grid.Column="2" Content="✕" Style="{StaticResource SecondaryButtonStyle}" BorderThickness="0" Background="Transparent" Padding="4,2" FontSize="10" Command="{Binding ClearSourceCommand}" Margin="4,0,0,0" VerticalAlignment="Center" Visibility="{Binding HasSourceDirectory, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                </Grid>
-                            </Border>
-                            
-                            <Button Grid.Column="2" Content="{DynamicResource Mass_Browse}" Command="{Binding BrowseSourceCommand}" Style="{StaticResource SecondaryButtonStyle}" />
-                        </Grid>
-                        <Border Grid.Row="3" Margin="-4,0,0,14" CornerRadius="6" Padding="4,4,8,4" HorizontalAlignment="Left">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="Transparent"/>
-                                    <Setter Property="BorderThickness" Value="1"/>
-                                    <Setter Property="BorderBrush" Value="Transparent"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HighlightSubfoldersHint}" Value="True">
-                                            <Setter Property="BorderBrush" Value="{DynamicResource AppAccentBrush}"/>
-                                            <Setter Property="Background" Value="{DynamicResource AppDragDropBackgroundHoverBrush}"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            <CheckBox Content="{DynamicResource Mass_IncludeSubfolders}" IsChecked="{Binding IncludeSubfolders}" FontSize="13" Foreground="{DynamicResource AppTextBrush}"/>
+                    <TextBlock Grid.Row="1"
+                               Text="{DynamicResource Unified_SourcePath}"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,5"
+                               Foreground="{DynamicResource AppTextBrush}"
+                               FontSize="13"/>
+
+                    <Grid Grid.Row="2" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="8" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="6" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="{DynamicResource AppInputBrush}" BorderBrush="{DynamicResource AppInputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10,6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ui:SymbolIcon Grid.Column="0" Symbol="FolderOpen24" FontSize="16" Foreground="{DynamicResource AppTextBrush}" Opacity="0.5" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Text="{Binding SourceDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BorderlessTextBoxStyle}" />
+                                <Button Grid.Column="2" Content="x" Style="{StaticResource SecondaryButtonStyle}" BorderThickness="0" Background="Transparent" Padding="4,2" FontSize="10" Command="{Binding ClearSourceCommand}" Margin="4,0,0,0" VerticalAlignment="Center" Visibility="{Binding HasSourceDirectory, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            </Grid>
                         </Border>
 
-                        <!-- Папка назначения -->
-                        <TextBlock Grid.Row="5" Text="{DynamicResource Mass_TargetDir}" FontWeight="SemiBold" Margin="0,0,0,6" Foreground="{DynamicResource AppTextBrush}" FontSize="13"/>
-                        <Grid Grid.Row="6" Margin="0,0,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="8" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            
-                            <Border Grid.Column="0" Background="{DynamicResource AppInputBrush}" BorderBrush="{DynamicResource AppInputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10,6">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <ui:SymbolIcon Grid.Column="0" Symbol="FolderOpen24" FontSize="16" Foreground="{DynamicResource AppTextBrush}" Opacity="0.5" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Text="{Binding TargetDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BorderlessTextBoxStyle}" />
-                                    <Button Grid.Column="2" Content="✕" Style="{StaticResource SecondaryButtonStyle}" BorderThickness="0" Background="Transparent" Padding="4,2" FontSize="10" Command="{Binding ClearTargetCommand}" Margin="4,0,0,0" VerticalAlignment="Center" Visibility="{Binding HasTargetDirectory, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                </Grid>
-                            </Border>
-                            
-                            <Button Grid.Column="2" Content="{DynamicResource Mass_Browse}" Command="{Binding BrowseTargetCommand}" Style="{StaticResource SecondaryButtonStyle}" />
-                        </Grid>
+                        <Button Grid.Column="2" Content="{DynamicResource Action_SelectFile}" Command="{Binding BrowseFileCommand}" Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button Grid.Column="4" Content="{DynamicResource Action_SelectFolder}" Command="{Binding BrowseSourceCommand}" Style="{StaticResource SecondaryButtonStyle}" />
                     </Grid>
-                </Border>
-                </Grid>
 
-                <!-- Карточка Настроек -->
-                <Grid Grid.Row="3" Margin="0,0,0,16">
-                    <!-- Тень -->
-                    <Border Background="{DynamicResource AppCardBrush}" CornerRadius="8">
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.03" Color="Black" />
-                        </Border.Effect>
+                    <Border Grid.Row="3"
+                            Background="{DynamicResource AppDragDropPartialBackgroundBrush}"
+                            BorderBrush="{DynamicResource AppWarningBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="10,8"
+                            Margin="0,0,0,10"
+                            Visibility="{Binding ShowSubfoldersSuggestion, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" Symbol="Folder24" FontSize="16" Foreground="{DynamicResource AppWarningBrush}" Margin="0,1,8,0"/>
+                            <TextBlock Grid.Column="1" Text="{DynamicResource Hint_SubfoldersAvailable}" FontSize="12" Foreground="{DynamicResource AppTextBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            <Button Grid.Column="2" Content="{DynamicResource Action_Enable}" Command="{Binding EnableSubfoldersForCurrentSelectionCommand}" Style="{StaticResource SecondaryButtonStyle}" Padding="10,5" Margin="10,0,0,0"/>
+                        </Grid>
                     </Border>
-                    
-                    <!-- Контент -->
-                    <Border Background="{DynamicResource AppCardBrush}" 
-                            BorderBrush="{DynamicResource AppCardBorderBrush}" 
-                            BorderThickness="1" CornerRadius="8" Padding="20,18">
-                        <StackPanel>
-                        <!-- Форматы -->
-                        <TextBlock Text="{DynamicResource Mass_Format}" FontWeight="SemiBold" Margin="0,0,0,6" Foreground="{DynamicResource AppTextBrush}" FontSize="13"/>
-                        <WrapPanel Margin="0,0,0,12">
-                            <RadioButton Content="JPG" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=JPG}"/>
-                            <RadioButton Content="JPEG" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=JPEG}"/>
-                            <RadioButton Content="PNG" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=PNG}"/>
-                            <RadioButton Content="WEBP" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=WEBP}"/>
-                            <RadioButton Content="BMP" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=BMP}"/>
-                            <RadioButton Content="TGA" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=TGA}"/>
-                            <RadioButton Content="AVIF" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=AVIF}"/>
-                            <RadioButton Content="HEIC" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=HEIC}"/>
-                            <RadioButton Content="TIFF" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=TIFF}"/>
-                            <RadioButton Content="ICO" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=ICO}"/>
-                            <RadioButton Content="JXL" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=JXL}"/>
-                            <RadioButton Content="PDF" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=PDF}"/>
-                            <RadioButton Content="GIF" GroupName="Fmt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=GIF}"/>
-                        </WrapPanel>
 
-                        <!-- Качество -->
+                    <TextBlock Grid.Row="4"
+                               Text="{DynamicResource Mass_TargetDir}"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,5"
+                               Foreground="{DynamicResource AppTextBrush}"
+                               FontSize="13"/>
+
+                    <Grid Grid.Row="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="8" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="{DynamicResource AppInputBrush}" BorderBrush="{DynamicResource AppInputBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10,6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ui:SymbolIcon Grid.Column="0" Symbol="FolderOpen24" FontSize="16" Foreground="{DynamicResource AppTextBrush}" Opacity="0.5" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Text="{Binding TargetDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BorderlessTextBoxStyle}" />
+                                <Button Grid.Column="2" Content="x" Style="{StaticResource SecondaryButtonStyle}" BorderThickness="0" Background="Transparent" Padding="4,2" FontSize="10" Command="{Binding ClearTargetCommand}" Margin="4,0,0,0" VerticalAlignment="Center" Visibility="{Binding HasTargetDirectory, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            </Grid>
+                        </Border>
+
+                        <Button Grid.Column="2" Content="{DynamicResource Mass_Browse}" Command="{Binding BrowseTargetCommand}" Style="{StaticResource SecondaryButtonStyle}" />
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="1"
+                    Background="{DynamicResource AppCardBrush}"
+                    BorderBrush="{DynamicResource AppCardBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="18,14"
+                    Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource Mass_Format}" FontWeight="SemiBold" Margin="0,0,0,6" Foreground="{DynamicResource AppTextBrush}" FontSize="13"/>
+                    <WrapPanel Margin="0,0,0,10">
+                        <RadioButton Content="JPG" GroupName="FmtMain" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=JPG}"/>
+                        <RadioButton Content="PNG" GroupName="FmtMain" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=PNG}"/>
+                        <RadioButton Content="WEBP" GroupName="FmtMain" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=WEBP}"/>
+                        <RadioButton Content="GIF" GroupName="FmtMain" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=GIF}"/>
+                        <RadioButton Content="AVIF" GroupName="FmtMain" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=AVIF}"/>
+                        <RadioButton Content="JXL" GroupName="FmtMain" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=JXL}"/>
+                        <RadioButton Content="PDF" GroupName="FmtMain" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=PDF}"/>
+                        <Button x:Name="OtherFormatsButton"
+                                Content="{Binding OtherFormatButtonText}"
+                                Style="{StaticResource OtherFormatButtonStyle}"
+                                Click="OnOtherFormatsClick">
+                            <Button.ContextMenu>
+                                <ContextMenu Background="{DynamicResource AppPopupBrush}" BorderBrush="{DynamicResource AppPopupBorderBrush}" Placement="Bottom">
+                                    <MenuItem Header="JPEG" Tag="JPEG" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="TIFF" Tag="TIFF" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="BMP" Tag="BMP" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="ICO" Tag="ICO" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="TGA" Tag="TGA" Click="OnOtherFormatMenuItemClick"/>
+                                    <Separator/>
+                                    <MenuItem Header="SVG" Tag="SVG" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="PSD" Tag="PSD" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="DDS" Tag="DDS" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="EXR" Tag="EXR" Click="OnOtherFormatMenuItemClick"/>
+                                    <Separator/>
+                                    <MenuItem Header="PPM" Tag="PPM" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="PGM" Tag="PGM" Click="OnOtherFormatMenuItemClick"/>
+                                    <MenuItem Header="PBM" Tag="PBM" Click="OnOtherFormatMenuItemClick"/>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
+                    </WrapPanel>
+
+                    <StackPanel Visibility="{Binding ShowQualityOptions, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <TextBlock Text="{DynamicResource Mass_Quality}" FontWeight="SemiBold" Margin="0,0,0,6" Foreground="{DynamicResource AppTextBrush}" FontSize="13"/>
-                        <WrapPanel Margin="0,0,0,12">
-                            <RadioButton Content="{DynamicResource Quality_Low}" GroupName="Qlt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=25}"/>
-                            <RadioButton Content="{DynamicResource Quality_Medium}" GroupName="Qlt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=50}"/>
-                            <RadioButton Content="{DynamicResource Quality_High}" GroupName="Qlt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=80}"/>
-                            <RadioButton Content="{DynamicResource Quality_Max}" GroupName="Qlt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=100}"/>
-                            <RadioButton Content="{DynamicResource Quality_Custom}" GroupName="Qlt2" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding IsCustomQuality}"/>
-                            
-                            <Border Background="{DynamicResource AppInputBrush}" 
-                                    BorderBrush="{DynamicResource AppInputBorderBrush}" 
-                                    BorderThickness="1" 
-                                    CornerRadius="4" 
-                                    Width="50" Height="32" 
-                                    Margin="8,0,0,8"
+                        <WrapPanel Margin="0,0,0,10">
+                            <RadioButton Content="{DynamicResource Quality_Low}" GroupName="QltMain" Style="{StaticResource QualityChipStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=50}"/>
+                            <RadioButton Content="{DynamicResource Quality_Medium}" GroupName="QltMain" Style="{StaticResource QualityChipStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=75}"/>
+                            <RadioButton Content="{DynamicResource Quality_High}" GroupName="QltMain" Style="{StaticResource QualityChipStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=90}"/>
+                            <RadioButton Content="{DynamicResource Quality_Max}" GroupName="QltMain" Style="{StaticResource QualityChipStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=100}"/>
+                            <RadioButton Content="{DynamicResource Quality_Custom}" GroupName="QltMain" Style="{StaticResource QualityChipStyle}" IsChecked="{Binding IsCustomQuality}"/>
+
+                            <Border Background="{DynamicResource AppInputBrush}"
+                                    BorderBrush="{DynamicResource AppInputBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    Width="44"
+                                    Height="32"
+                                    Margin="4,0,0,6"
                                     VerticalAlignment="Top"
                                     Visibility="{Binding IsCustomQuality, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <Grid>
-                                    <TextBox Text="{Binding Quality}" Style="{StaticResource BorderlessTextBoxStyle}" TextAlignment="Center" Padding="4,0" MaxLength="3" />
-                                </Grid>
+                                <TextBox Text="{Binding Quality}" Style="{StaticResource BorderlessTextBoxStyle}" TextAlignment="Center" Padding="4,0" MaxLength="3" />
                             </Border>
                         </WrapPanel>
+                    </StackPanel>
 
-                        <StackPanel Margin="0,0,0,12">
-                            <ui:ToggleSwitch IsChecked="{Binding DeleteOriginal, Mode=TwoWay}"
-                                             Content="{DynamicResource Convert_DeleteOriginal}"
-                                             ToolTip="{DynamicResource Convert_DeleteOriginal_Tooltip}"
-                                             Margin="0,0,0,10"/>
-                            
-                            <ui:ToggleSwitch IsChecked="{Binding ExtractAllPages, Mode=TwoWay}"
-                                             Content="{DynamicResource Convert_ExtractAllPages}"
-                                             ToolTip="{DynamicResource Convert_ExtractAllPages_Tooltip}"/>
-                        </StackPanel>
-
-                        <!-- Progress Section -->
-                        <StackPanel Margin="0,16,0,0">
-                            <StackPanel.Style>
-                                <Style TargetType="StackPanel">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ProgressStatus}" Value="{x:Null}">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding ProgressStatus}" Value="">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </StackPanel.Style>
-                            <Grid Margin="0,0,0,4">
-                                <TextBlock FontSize="12" Foreground="{DynamicResource AppTextBrush}" Opacity="0.7" Text="{Binding ProgressStatus}"/>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Visibility="{Binding ShowProgressDetails, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                    <TextBlock Text="{Binding ProgressValue}" FontSize="12" Foreground="{DynamicResource AppTextBrush}" Opacity="0.7"/>
-                                    <TextBlock Text=" / " FontSize="12" Foreground="{DynamicResource AppTextBrush}" Opacity="0.7"/>
-                                    <TextBlock Text="{Binding ProgressMax}" FontSize="12" Foreground="{DynamicResource AppTextBrush}" Opacity="0.7"/>
-                                </StackPanel>
-                            </Grid>
-                            <ProgressBar Value="{Binding ProgressValue}" Maximum="{Binding ProgressMax}" Height="6" Background="{DynamicResource AppProgressBackgroundBrush}" Foreground="{DynamicResource AppAccentBrush}" BorderThickness="0" Visibility="{Binding ShowProgressDetails, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <ProgressBar.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="3"/>
-                                    </Style>
-                                </ProgressBar.Resources>
-                            </ProgressBar>
-                        </StackPanel>
-                        </StackPanel>
+                    <Border Background="{DynamicResource AppDragDropBackgroundHoverBrush}"
+                            BorderBrush="{DynamicResource AppAccentBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="10,8"
+                            Margin="0,0,0,8"
+                            Visibility="{Binding ShowExtractAllSuggestion, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" Symbol="Document24" FontSize="16" Foreground="{DynamicResource AppAccentBrush}" Margin="0,1,8,0"/>
+                            <TextBlock Grid.Column="1" Text="{DynamicResource Hint_ExtractAllAvailable}" FontSize="12" Foreground="{DynamicResource AppTextBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            <Button Grid.Column="2" Content="{DynamicResource Action_Enable}" Command="{Binding EnableExtractAllForCurrentConversionCommand}" Style="{StaticResource SecondaryButtonStyle}" Padding="10,5" Margin="10,0,0,0"/>
+                        </Grid>
                     </Border>
-                </Grid>
 
-                <!-- Actions -->
-                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="{DynamicResource Action_Cancel}" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,12,0" Command="{Binding CancelCommand}"/>
-                    <Button Content="{DynamicResource Action_Convert}" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding ConvertCommand}"/>
+                    <Border Background="{DynamicResource AppDragDropBackgroundHoverBrush}"
+                            BorderBrush="{DynamicResource AppAccentBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="10,8"
+                            Margin="0,0,0,8"
+                            Visibility="{Binding HasConversionNotice, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" Symbol="Warning24" FontSize="16" Foreground="{DynamicResource AppAccentBrush}" Margin="0,1,8,0" VerticalAlignment="Top"/>
+                            <TextBlock Grid.Column="1" Text="{Binding ConversionNoticeText}" FontSize="12" Foreground="{DynamicResource AppTextBrush}" TextWrapping="Wrap"/>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Margin="0,8,0,0">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ProgressStatus}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding ProgressStatus}" Value="">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <Grid Margin="0,0,0,4">
+                            <TextBlock FontSize="12" Foreground="{DynamicResource AppTextBrush}" Opacity="0.75" Text="{Binding ProgressStatus}"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Visibility="{Binding ShowProgressDetails, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBlock Text="{Binding ProgressValue}" FontSize="12" Foreground="{DynamicResource AppTextBrush}" Opacity="0.7"/>
+                                <TextBlock Text=" / " FontSize="12" Foreground="{DynamicResource AppTextBrush}" Opacity="0.7"/>
+                                <TextBlock Text="{Binding ProgressMax}" FontSize="12" Foreground="{DynamicResource AppTextBrush}" Opacity="0.7"/>
+                            </StackPanel>
+                        </Grid>
+                        <ProgressBar Value="{Binding ProgressValue}" Maximum="{Binding ProgressMax}" Height="6" Background="{DynamicResource AppProgressBackgroundBrush}" Foreground="{DynamicResource AppAccentBrush}" BorderThickness="0" Visibility="{Binding ShowProgressDetails, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <ProgressBar.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="3"/>
+                                </Style>
+                            </ProgressBar.Resources>
+                        </ProgressBar>
+                    </StackPanel>
                 </StackPanel>
+            </Border>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="{DynamicResource Action_Cancel}" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,12,0" Command="{Binding CancelCommand}"/>
+                <Button Content="{DynamicResource Action_Convert}" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding ConvertCommand}"/>
+            </StackPanel>
         </Grid>
     </ScrollViewer>
 </Page>

@@ -9,7 +9,7 @@ namespace SPConverter.Tests.Services;
 public class LocalFileServiceTests
 {
     [Fact]
-    public void GetUniqueFilePath_ShouldReturnOriginal_IfFileDoesNotExist()
+    public void ReserveUniqueFilePath_ShouldReturnOriginal_IfFileDoesNotExist()
     {
         // Arrange
         var sut = new LocalFileService();
@@ -21,7 +21,7 @@ public class LocalFileServiceTests
             var originalFile = Path.Combine(tempDir, "test.png");
             
             // Act
-            var result = sut.GetUniqueFilePath(originalFile, tempDir, ".jpg");
+            var result = sut.ReserveUniqueFilePath(originalFile, tempDir, ".jpg");
             
             // Assert
             result.Should().Be(Path.Combine(tempDir, "test.jpg"));
@@ -33,7 +33,7 @@ public class LocalFileServiceTests
     }
 
     [Fact]
-    public void GetUniqueFilePath_ShouldAppendNumber_IfFileExists()
+    public void ReserveUniqueFilePath_ShouldAppendNumber_IfFileExists()
     {
         // Arrange
         var sut = new LocalFileService();
@@ -49,10 +49,31 @@ public class LocalFileServiceTests
             File.WriteAllText(existingTarget, "dummy content");
             
             // Act
-            var result = sut.GetUniqueFilePath(originalFile, tempDir, ".jpg");
+            var result = sut.ReserveUniqueFilePath(originalFile, tempDir, ".jpg");
             
             // Assert
             result.Should().Be(Path.Combine(tempDir, "test_1.jpg"));
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void ReserveUniqueFilePath_ShouldPreservePageSuffix()
+    {
+        var sut = new LocalFileService();
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            var originalFile = Path.Combine(tempDir, "test.png");
+
+            var result = sut.ReserveUniqueFilePath(originalFile, tempDir, "_page1.jpg");
+
+            result.Should().Be(Path.Combine(tempDir, "test_page1.jpg"));
         }
         finally
         {
@@ -113,6 +134,51 @@ public class LocalFileServiceTests
             // Assert
             resultWithSubfolders.Should().HaveCount(2);
             resultWithoutSubfolders.Should().HaveCount(1);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void ScanImagesInPath_ShouldReportSkippedUnsupportedFiles()
+    {
+        var sut = new LocalFileService();
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            File.WriteAllText(Path.Combine(tempDir, "image.png"), "dummy");
+            File.WriteAllText(Path.Combine(tempDir, "notes.txt"), "dummy");
+
+            var scanResult = sut.ScanImagesInPath(tempDir, includeSubfolders: false);
+
+            scanResult.SupportedFiles.Should().ContainSingle();
+            scanResult.SkippedFiles.Should().Be(1);
+            scanResult.SourceExists.Should().BeTrue();
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void ScanImagesInPath_ShouldReportNestedFoldersWithoutScanningThemByDefault()
+    {
+        var sut = new LocalFileService();
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        Directory.CreateDirectory(Path.Combine(tempDir, "sub"));
+
+        try
+        {
+            var scanResult = sut.ScanImagesInPath(tempDir, includeSubfolders: false);
+
+            scanResult.HasNestedFolders.Should().BeTrue();
+            scanResult.SupportedFiles.Should().BeEmpty();
         }
         finally
         {

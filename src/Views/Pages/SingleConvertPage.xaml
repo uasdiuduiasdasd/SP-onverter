@@ -6,7 +6,8 @@
       Background="Transparent"
       FontFamily="Segoe UI Variable, Segoe UI, sans-serif">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  PreviewMouseWheel="OnPageScrollViewerPreviewMouseWheel">
         <Grid Margin="24,16,24,16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -35,6 +36,7 @@
                     VerticalAlignment="Top">
                 <Grid>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -116,7 +118,6 @@
                         <RadioButton Content="BMP" GroupName="Fmt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=BMP}"/>
                         <RadioButton Content="TGA" GroupName="Fmt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=TGA}"/>
                         <RadioButton Content="AVIF" GroupName="Fmt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=AVIF}"/>
-                        <RadioButton Content="HEIC" GroupName="Fmt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=HEIC}"/>
                         <RadioButton Content="TIFF" GroupName="Fmt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=TIFF}"/>
                         <RadioButton Content="ICO" GroupName="Fmt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=ICO}"/>
                         <RadioButton Content="JXL" GroupName="Fmt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding TargetFormat, Converter={StaticResource StringMatchConverter}, ConverterParameter=JXL}"/>
@@ -127,9 +128,9 @@
                     <!-- Качество -->
                     <TextBlock Grid.Row="7" Text="{DynamicResource Mass_Quality}" FontWeight="SemiBold" Margin="0,0,0,6" Foreground="{DynamicResource AppTextBrush}" FontSize="13"/>
                     <WrapPanel Grid.Row="8" Margin="0,0,0,0">
-                        <RadioButton Content="{DynamicResource Quality_Low}" GroupName="Qlt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=25}"/>
-                        <RadioButton Content="{DynamicResource Quality_Medium}" GroupName="Qlt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=50}"/>
-                        <RadioButton Content="{DynamicResource Quality_High}" GroupName="Qlt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=80}"/>
+                        <RadioButton Content="{DynamicResource Quality_Low}" GroupName="Qlt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=50}"/>
+                        <RadioButton Content="{DynamicResource Quality_Medium}" GroupName="Qlt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=75}"/>
+                        <RadioButton Content="{DynamicResource Quality_High}" GroupName="Qlt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=90}"/>
                         <RadioButton Content="{DynamicResource Quality_Max}" GroupName="Qlt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding Quality, Converter={StaticResource StringMatchConverter}, ConverterParameter=100}"/>
                         <RadioButton Content="{DynamicResource Quality_Custom}" GroupName="Qlt1" Style="{StaticResource ChipToggleStyle}" IsChecked="{Binding IsCustomQuality}"/>
                         
@@ -147,7 +148,34 @@
                         </Border>
                     </WrapPanel>
 
-                    <StackPanel Grid.Row="9" Margin="0,12,0,0">
+                    <Border Grid.Row="9"
+                            Background="{DynamicResource AppDragDropBackgroundHoverBrush}"
+                            BorderBrush="{DynamicResource AppAccentBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="10,8"
+                            Margin="0,12,0,0"
+                            Visibility="{Binding HasConversionNotice, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0"
+                                           Symbol="Warning24"
+                                           FontSize="16"
+                                           Foreground="{DynamicResource AppAccentBrush}"
+                                           Margin="0,1,8,0"
+                                           VerticalAlignment="Top"/>
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding ConversionNoticeText}"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource AppTextBrush}"
+                                       TextWrapping="Wrap"/>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Grid.Row="10" Margin="0,12,0,0">
                         <ui:ToggleSwitch IsChecked="{Binding DeleteOriginal, Mode=TwoWay}"
                                          Content="{DynamicResource Convert_DeleteOriginal}"
                                          ToolTip="{DynamicResource Convert_DeleteOriginal_Tooltip}"

@@ -25,7 +25,7 @@ public class MagickImageConverterTests : IDisposable
         _fileServiceMock = new Mock<IFileManagementService>();
         
         // Mock to always return the target name in the temp dir
-        _fileServiceMock.Setup(f => f.GetUniqueFilePath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        _fileServiceMock.Setup(f => f.ReserveUniqueFilePath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns((string src, string dir, string ext) => Path.Combine(dir, Path.GetFileNameWithoutExtension(src) + ext));
     }
 
@@ -37,10 +37,10 @@ public class MagickImageConverterTests : IDisposable
         }
     }
 
-    private string CreateTestImage(string format = "png", bool hasAlpha = false)
+    private string CreateTestImage(string format = "png", bool hasAlpha = false, int width = 10, int height = 10)
     {
         var filePath = Path.Combine(_tempDir, $"test_image.{format}");
-        using var image = new MagickImage(MagickColors.Red, 10, 10);
+        using var image = new MagickImage(MagickColors.Red, (uint)width, (uint)height);
         
         if (hasAlpha)
         {
@@ -53,11 +53,54 @@ public class MagickImageConverterTests : IDisposable
             "JPG" => MagickFormat.Jpeg,
             "JPEG" => MagickFormat.Jpeg,
             "WEBP" => MagickFormat.WebP,
+            "PSD" => MagickFormat.Psd,
             _ => MagickFormat.Png
         };
         
         image.Write(filePath);
         return filePath;
+    }
+
+    [Fact]
+    public async Task ConvertFileAsync_ShouldConvertPsdToAvifAtMaximumQuality()
+    {
+        var sut = new MagickImageConverter(_fileServiceMock.Object);
+        var sourceFile = CreateTestImage("psd", width: 640, height: 480);
+        var options = new ConversionOptions
+        {
+            TargetFormat = "AVIF",
+            Quality = 100,
+            DeleteOriginalFiles = false
+        };
+
+        await sut.ConvertFileAsync(sourceFile, _tempDir, options, CancellationToken.None);
+
+        var expectedFile = Path.Combine(_tempDir, "test_image.avif");
+        File.Exists(expectedFile).Should().BeTrue();
+        using var outputImage = new MagickImage(expectedFile);
+        outputImage.Format.Should().Be(MagickFormat.Avif);
+    }
+
+    [Fact]
+    public async Task ConvertFileAsync_ShouldCreateMultiSizeIcoFromLargeImage()
+    {
+        var sut = new MagickImageConverter(_fileServiceMock.Object);
+        var sourceFile = CreateTestImage("png", width: 640, height: 480);
+        var options = new ConversionOptions
+        {
+            TargetFormat = "ICO",
+            Quality = 100,
+            DeleteOriginalFiles = false
+        };
+
+        await sut.ConvertFileAsync(sourceFile, _tempDir, options, CancellationToken.None);
+
+        var expectedFile = Path.Combine(_tempDir, "test_image.ico");
+        File.Exists(expectedFile).Should().BeTrue();
+        using var icons = new MagickImageCollection(expectedFile);
+        icons.Count.Should().BeGreaterThan(1);
+        icons.Should().Contain(icon => icon.Width == 256 && icon.Height == 256);
+        icons.Should().Contain(icon => icon.Width == 16 && icon.Height == 16);
     }
 
     [Fact]
@@ -133,6 +176,9 @@ public class MagickImageConverterTests : IDisposable
     }
     [Theory]
     [InlineData("JXL", MagickFormat.Jxl)]
+    [InlineData("AVIF", MagickFormat.Avif)]
+    [InlineData("BMP", MagickFormat.Bmp)]
+    [InlineData("TGA", MagickFormat.Tga)]
     [InlineData("TIFF", MagickFormat.Tiff)]
     [InlineData("PDF", MagickFormat.Pdf)]
     [InlineData("ICO", MagickFormat.Ico)]
@@ -164,6 +210,29 @@ public class MagickImageConverterTests : IDisposable
         }
     }
 
+    [Theory]
+    [InlineData("HEIC")]
+    [InlineData("HEIF")]
+    public async Task ConvertFileAsync_ShouldRejectTargetsWithoutWriteEncoder(string targetFormat)
+    {
+        var sut = new MagickImageConverter(_fileServiceMock.Object);
+        var sourceFile = CreateTestImage("png");
+        var options = new ConversionOptions
+        {
+            TargetFormat = targetFormat,
+            Quality = 90,
+            DeleteOriginalFiles = false
+        };
+
+        var exception = await Assert.ThrowsAsync<NotSupportedException>(() =>
+            sut.ConvertFileAsync(sourceFile, _tempDir, options, CancellationToken.None));
+
+        exception.Message.Should().Contain("cannot be written");
+        _fileServiceMock.Verify(
+            service => service.ReserveUniqueFilePath(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+            Times.Never);
+    }
+
     [Fact]
     public async Task ConvertFileAsync_ShouldClampQuality()
     {
@@ -185,5 +254,29 @@ public class MagickImageConverterTests : IDisposable
         var expectedFile = Path.Combine(_tempDir, "test_image.jpeg");
         using var outputImage = new MagickImage(expectedFile);
         Assert.True(outputImage.Quality <= 100);
+    }
+
+    [Fact]
+    public async Task ConvertFilesAsync_ShouldThrowBatchException_WhenAnyFileFails()
+    {
+        var sut = new MagickImageConverter(_fileServiceMock.Object);
+        var sourceFile = CreateTestImage("png");
+        var missingFile = Path.Combine(_tempDir, "missing.png");
+        var options = new ConversionOptions
+        {
+            TargetFormat = "JPG",
+            Quality = 90
+        };
+
+        var exception = await Assert.ThrowsAsync<ConversionBatchException>(() =>
+            sut.ConvertFilesAsync(
+                new[] { sourceFile, missingFile },
+                _tempDir,
+                options,
+                new Progress<ConversionProgress>(),
+                CancellationToken.None));
+
+        exception.Failures.Should().ContainSingle(failure => failure.FilePath == missingFile);
+        File.Exists(Path.Combine(_tempDir, "test_image.jpg")).Should().BeTrue();
     }
 }

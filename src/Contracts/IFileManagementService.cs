@@ -1,10 +1,15 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using SPConverter.Models;
 
 namespace SPConverter.Contracts;
 
 public interface IFileManagementService
 {
+    /// <summary>
+    /// Просканировать файл или папку и вернуть поддерживаемые файлы вместе со сводкой.
+    /// </summary>
+    ImageScanResult ScanImagesInPath(string path, bool includeSubfolders);
+
     /// <summary>
     /// Найти все поддерживаемые изображения в папке.
     /// </summary>
@@ -16,7 +21,7 @@ public interface IFileManagementService
     bool IsSupportedImage(string filePath);
     
     /// <summary>
-    /// Сгенерировать уникальное имя файла, если такой уже существует в папке назначения (из ТЗ).
+    /// Зарезервировать уникальный путь выходного файла в папке назначения.
     /// </summary>
-    string GetUniqueFilePath(string originalPath, string outputDirectory, string targetExtension);
+    string ReserveUniqueFilePath(string originalPath, string outputDirectory, string targetSuffix);
 }

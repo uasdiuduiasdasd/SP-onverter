@@ -5,9 +5,13 @@
     <SolidColorBrush x:Key="AppTextBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="AppCardBrush" Color="#0AFFFFFF" />
     <SolidColorBrush x:Key="AppCardBorderBrush" Color="#33FFFFFF" />
+    <SolidColorBrush x:Key="AppPopupBrush" Color="#000000" />
+    <SolidColorBrush x:Key="AppPopupBorderBrush" Color="#666666" />
     <SolidColorBrush x:Key="AppAccentBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="AppAccentHoverBrush" Color="#d3d3d3" />
     <SolidColorBrush x:Key="AppAccentForegroundBrush" Color="#000000" />
+    <SolidColorBrush x:Key="AppWarningBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppDangerBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="AppInputBrush" Color="#000000" />
     <SolidColorBrush x:Key="AppInputBorderBrush" Color="#333333" />
     <SolidColorBrush x:Key="AppNavBorderBrush" Color="#262626" />
@@ -19,6 +23,8 @@
     <!-- Drag & Drop Zone -->
     <SolidColorBrush x:Key="AppDragDropBackgroundBrush" Color="#FFFFFF" Opacity="0.05" />
     <SolidColorBrush x:Key="AppDragDropBackgroundHoverBrush" Color="#E0E0E0" Opacity="0.1" />
+    <SolidColorBrush x:Key="AppDragDropPartialBackgroundBrush" Color="#FFFFFF" Opacity="0.08" />
+    <SolidColorBrush x:Key="AppDragDropInvalidBackgroundBrush" Color="#FFFFFF" Opacity="0.08" />
     <SolidColorBrush x:Key="AppDragDropBorderBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="AppDragDropForegroundBrush" Color="#FFFFFF" />
 

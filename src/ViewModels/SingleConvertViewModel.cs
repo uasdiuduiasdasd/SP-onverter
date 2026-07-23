@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -25,6 +26,8 @@ public partial class SingleConvertViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(ConvertCommand))]
     [NotifyPropertyChangedFor(nameof(SelectedFileName))]
     [NotifyPropertyChangedFor(nameof(HasSelectedFile))]
+    [NotifyPropertyChangedFor(nameof(ConversionNoticeText))]
+    [NotifyPropertyChangedFor(nameof(HasConversionNotice))]
     private string? _selectedFile;
     
     [ObservableProperty] 
@@ -34,7 +37,13 @@ public partial class SingleConvertViewModel : ViewModelBase
     public string SelectedFileName => string.IsNullOrEmpty(SelectedFile) ? "" : Path.GetFileName(SelectedFile);
     public bool HasSelectedFile => !string.IsNullOrEmpty(SelectedFile);
     public bool HasTargetDirectory => !string.IsNullOrEmpty(TargetDirectory);
-    [ObservableProperty] private string _targetFormat = "JPEG";
+    public string ConversionNoticeText => BuildConversionNoticeText();
+    public bool HasConversionNotice => !string.IsNullOrEmpty(ConversionNoticeText);
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ConversionNoticeText))]
+    [NotifyPropertyChangedFor(nameof(HasConversionNotice))]
+    private string _targetFormat = "JPEG";
     
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsCustomQuality))]
@@ -42,24 +51,31 @@ public partial class SingleConvertViewModel : ViewModelBase
 
     partial void OnQualityChanged(int value)
     {
-        if (value < 1) _quality = 1;
-        else if (value > 100) _quality = 100;
+        int clampedQuality = Math.Clamp(value, 1, 100);
+        if (clampedQuality != value)
+        {
+            Quality = clampedQuality;
+        }
     }
 
     public bool IsCustomQuality
     {
-        get => Quality != 25 && Quality != 50 && Quality != 80 && Quality != 100;
+        get => Quality != 50 && Quality != 75 && Quality != 90 && Quality != 100;
         set
         {
-            if (value && (Quality == 25 || Quality == 50 || Quality == 80 || Quality == 100))
+            if (value && (Quality == 50 || Quality == 75 || Quality == 90 || Quality == 100))
             {
-                Quality = 90;
+                Quality = 85;
             }
         }
     }
 
     [ObservableProperty] private bool _deleteOriginal;
-    [ObservableProperty] private bool _extractAllPages;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ConversionNoticeText))]
+    [NotifyPropertyChangedFor(nameof(HasConversionNotice))]
+    private bool _extractAllPages;
     [ObservableProperty] 
     [NotifyCanExecuteChangedFor(nameof(ConvertCommand))]
     [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
@@ -74,7 +90,7 @@ public partial class SingleConvertViewModel : ViewModelBase
     [RelayCommand]
     private void SelectFile()
     {
-        var filter = System.Windows.Application.Current?.Resources["Dialog_ImageFilter"] as string ?? "Images|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.tga;*.avif;*.heic;*.cr2;*.nef;*.arw;*.dng;*.psd;*.svg;*.gif;*.ico;*.tiff;*.tif;*.jxl|All Files|*.*";
+        var filter = System.Windows.Application.Current?.Resources["Dialog_ImageFilter"] as string ?? "Images|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.tga;*.avif;*.heic;*.cr2;*.nef;*.arw;*.dng;*.psd;*.svg;*.gif;*.ico;*.tiff;*.tif;*.jxl;*.pdf|All Files|*.*";
         var title = System.Windows.Application.Current?.Resources["Dialog_SelectImageTitle"] as string ?? "Select image for conversion";
 
         var dialog = new Microsoft.Win32.OpenFileDialog
@@ -114,7 +130,12 @@ public partial class SingleConvertViewModel : ViewModelBase
         TargetDirectory = null;
     }
 
-    private bool CanConvert() => !IsConverting && !string.IsNullOrEmpty(SelectedFile);
+    private bool CanConvert()
+    {
+        return !IsConverting
+               && !string.IsNullOrEmpty(SelectedFile)
+               && ImageFormatRules.IsSupportedInputFile(SelectedFile);
+    }
 
     [RelayCommand(CanExecute = nameof(CanConvert))]
     private async Task ConvertAsync()
@@ -164,7 +185,7 @@ public partial class SingleConvertViewModel : ViewModelBase
 
             _snackbarService.Show(
                 title,
-                string.Format(template, ex.Message),
+                string.Format(template, ExceptionDisplayMessage.From(ex)),
                 ControlAppearance.Danger,
                 new SymbolIcon(SymbolRegular.ErrorCircle24),
                 TimeSpan.FromSeconds(6)
@@ -184,6 +205,74 @@ public partial class SingleConvertViewModel : ViewModelBase
     private void Cancel()
     {
         _cts?.Cancel();
+    }
+
+    private string BuildConversionNoticeText()
+    {
+        if (string.IsNullOrEmpty(SelectedFile))
+        {
+            return string.Empty;
+        }
+
+        string? unsupportedFileNotice = BuildUnsupportedFileNotice(SelectedFile);
+        return unsupportedFileNotice ?? BuildSupportedImageNoticeText(SelectedFile);
+    }
+
+    private static string? BuildUnsupportedFileNotice(string filePath)
+    {
+        if (ImageFormatRules.IsVideoFile(filePath))
+        {
+            return ResourceText(
+                "Convert_Notice_VideoUnsupported",
+                "Video files are not supported. Extract frames first, then convert the resulting images.");
+        }
+
+        if (!ImageFormatRules.IsSupportedInputFile(filePath))
+        {
+            string template = ResourceText(
+                "Convert_Notice_UnsupportedInput",
+                "This file type is not supported. Supported image formats: {0}.");
+            return string.Format(template, ImageFormatRules.SupportedInputExtensionsDisplay);
+        }
+
+        return null;
+    }
+
+    private string BuildSupportedImageNoticeText(string filePath)
+    {
+        var notices = new List<string>();
+
+        AddSingleMultiImageNotice(filePath, notices);
+        AddSingleAlphaNotice(filePath, notices);
+
+        return string.Join(Environment.NewLine + Environment.NewLine, notices);
+    }
+
+    private void AddSingleMultiImageNotice(string filePath, ICollection<string> notices)
+    {
+        if (ImageFormatRules.MayContainMultipleImages(filePath) && !ExtractAllPages)
+        {
+            notices.Add(ResourceText(
+                "Convert_Notice_MultipleSingle",
+                "This file may contain several frames, pages, or icon sizes. Only the first image will be converted."));
+        }
+    }
+
+    private void AddSingleAlphaNotice(string filePath, ICollection<string> notices)
+    {
+        if (ImageFormatRules.SourceMayContainAlpha(filePath)
+            && ImageFormatRules.TargetFormatReplacesAlphaWithWhite(TargetFormat))
+        {
+            string template = ResourceText(
+                "Convert_Notice_AlphaSingle",
+                "When converting to {0}, transparency can be lost and replaced with a white background.");
+            notices.Add(string.Format(template, TargetFormat.ToUpperInvariant()));
+        }
+    }
+
+    private static string ResourceText(string key, string fallback)
+    {
+        return System.Windows.Application.Current?.Resources[key] as string ?? fallback;
     }
 
     [RelayCommand]

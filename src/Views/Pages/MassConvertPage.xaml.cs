@@ -1,5 +1,9 @@
+using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using SPConverter.ViewModels;
+using SPConverter.Views;
 
 namespace SPConverter.Views.Pages;
 
@@ -11,67 +15,77 @@ public partial class MassConvertPage : Page
         InitializeComponent();
     }
 
-    private static readonly HashSet<string> _acceptedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    private void OnDragEnter(object sender, DragEventArgs e)
     {
-        ".jpg", ".jpeg", ".png", ".webp", ".avif", ".bmp", ".tga",
-        ".tiff", ".tif", ".heic", ".cr2", ".cr3", ".nef", ".arw", ".dng",
-        ".psd", ".svg", ".gif", ".ico", ".jxl"
-    };
-
-    private void OnDragOver(object sender, System.Windows.DragEventArgs e)
-    {
-        if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+        string? dropPath = FirstDropPath(e);
+        if (dropPath != null && DataContext is MassConvertViewModel viewModel)
         {
-            string[]? files = e.Data.GetData(System.Windows.DataFormats.FileDrop) as string[];
-            if (files != null && files.Length > 0)
-            {
-                string path = files[0];
-                if (System.IO.Directory.Exists(path))
-                {
-                    e.Effects = System.Windows.DragDropEffects.Copy;
-                    e.Handled = true;
-                    return;
-                }
-                if (System.IO.File.Exists(path))
-                {
-                    string ext = System.IO.Path.GetExtension(path);
-                    if (!string.IsNullOrEmpty(ext) && _acceptedExtensions.Contains(ext))
-                    {
-                        e.Effects = System.Windows.DragDropEffects.Copy;
-                        e.Handled = true;
-                        return;
-                    }
-                }
-            }
+            viewModel.PreviewDropPath(dropPath);
+            e.Effects = DragDropEffects.Copy;
         }
-        e.Effects = System.Windows.DragDropEffects.None;
+        else
+        {
+            e.Effects = DragDropEffects.None;
+        }
+
         e.Handled = true;
     }
 
-    private void OnDrop(object sender, System.Windows.DragEventArgs e)
+    private void OnDragOver(object sender, DragEventArgs e)
     {
-        if (e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop))
+        e.Effects = FirstDropPath(e) == null ? DragDropEffects.None : DragDropEffects.Copy;
+        e.Handled = true;
+    }
+
+    private void OnDragLeave(object sender, DragEventArgs e)
+    {
+        if (DataContext is MassConvertViewModel viewModel)
         {
-            string[] files = (string[])e.Data.GetData(System.Windows.DataFormats.FileDrop);
-            if (files != null && files.Length > 0 && DataContext is MassConvertViewModel vm)
-            {
-                string dropped = files[0];
-                if (System.IO.Directory.Exists(dropped))
-                {
-                    vm.SourceDirectory = dropped;
-                    vm.ScanDirectoryCommand.Execute(null);
-                }
-                // Если перетащили файл — берём его родительскую папку
-                else if (System.IO.File.Exists(dropped))
-                {
-                    string? dir = System.IO.Path.GetDirectoryName(dropped);
-                    if (!string.IsNullOrEmpty(dir))
-                    {
-                        vm.SourceDirectory = dir;
-                        vm.ScanDirectoryCommand.Execute(null);
-                    }
-                }
-            }
+            viewModel.ClearDropPreview();
         }
+    }
+
+    private async void OnDrop(object sender, DragEventArgs e)
+    {
+        string? dropPath = FirstDropPath(e);
+        if (dropPath != null && DataContext is MassConvertViewModel viewModel)
+        {
+            viewModel.ClearDropPreview();
+            await viewModel.SetSourcePathAsync(dropPath);
+        }
+
+        e.Handled = true;
+    }
+
+    private void OnOtherFormatsClick(object sender, RoutedEventArgs e)
+    {
+        if (OtherFormatsButton.ContextMenu == null) return;
+
+        OtherFormatsButton.ContextMenu.MinWidth = OtherFormatsButton.ActualWidth;
+        OtherFormatsButton.ContextMenu.PlacementTarget = OtherFormatsButton;
+        OtherFormatsButton.ContextMenu.IsOpen = true;
+    }
+
+    private void OnOtherFormatMenuItemClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem { Tag: string format } && DataContext is MassConvertViewModel viewModel)
+        {
+            viewModel.SelectTargetFormatCommand.Execute(format);
+        }
+    }
+
+    private void OnPageScrollViewerPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        ScrollViewerWheel.ScrollByFixedStep(sender, e);
+    }
+
+    private static string? FirstDropPath(DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            return null;
+        }
+
+        return (e.Data.GetData(DataFormats.FileDrop) as string[])?.FirstOrDefault();
     }
 }

@@ -22,7 +22,7 @@ public partial class App : Application
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<SettingsViewModel>();
             services.AddTransient<SingleConvertViewModel>();
-            services.AddTransient<MassConvertViewModel>();
+            services.AddSingleton<MassConvertViewModel>();
 
             // Страницы
             services.AddTransient<SPConverter.Views.MainWindow>();

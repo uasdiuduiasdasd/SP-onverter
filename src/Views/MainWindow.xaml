@@ -2,46 +2,14 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        Title="SP Converter" Height="810" Width="570" MinWidth="460" MinHeight="650"
+        Title="SP Converter" Height="680" Width="620" MinWidth="520" MinHeight="540"
+        WindowStartupLocation="Manual"
         ExtendsContentIntoTitleBar="True"
         WindowCornerPreference="Round"
         Icon="pack://application:,,,/Assets/Logo.ico"
         Foreground="{DynamicResource AppTextBrush}"
         FontFamily="Segoe UI Variable, Segoe UI, sans-serif"
         Background="Transparent">
-
-    <Window.Resources>
-        <Style x:Key="TabButtonStyle" TargetType="RadioButton">
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="border" Background="Transparent" BorderBrush="{DynamicResource AppNavBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="14,6" Margin="3,0">
-                            <Grid>
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" 
-                                                  TextElement.FontSize="13" 
-                                                  TextElement.FontWeight="Medium"
-                                                  TextElement.Foreground="{TemplateBinding Foreground}"/>
-                                <Rectangle x:Name="underline" Height="2" Fill="{DynamicResource AppAccentBrush}" VerticalAlignment="Bottom" Margin="0,0,0,-6" Visibility="Hidden"/>
-                            </Grid>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{DynamicResource AppToggleInactiveHoverBrush}" />
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{DynamicResource AppInputBrush}" />
-                                <Setter Property="Foreground" Value="{DynamicResource AppAccentBrush}" />
-                                <Setter TargetName="underline" Property="Visibility" Value="Visible" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
-
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -67,13 +35,16 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             
-            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                <RadioButton Content="{DynamicResource Nav_MassConvert}" GroupName="Tabs" Style="{StaticResource TabButtonStyle}" IsChecked="True" Checked="NavMass_Checked"/>
-                <RadioButton Content="{DynamicResource Nav_SingleConvert}" GroupName="Tabs" Style="{StaticResource TabButtonStyle}" Checked="NavSingle_Checked"/>
-            </StackPanel>
-
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <RadioButton Content="{DynamicResource Nav_Settings}" GroupName="Tabs" Style="{StaticResource TabButtonStyle}" Checked="NavSettings_Checked"/>
+                <Button x:Name="SupportProjectButton"
+                        Content="{DynamicResource Support_Project}"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Margin="0,0,8,0"
+                        Click="OnSupportProjectClick"/>
+                <Button x:Name="SettingsToggleButton"
+                        Content="{DynamicResource Nav_Settings}"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Click="OnSettingsToggleClick"/>
             </StackPanel>
         </Grid>
 
@@ -89,8 +60,8 @@
         <Border Grid.Row="4" x:Name="NotificationToast" 
                 HorizontalAlignment="Center" VerticalAlignment="Bottom" 
                 Margin="0,0,0,24" Padding="18,12" 
-                Background="{DynamicResource AppCardBrush}" 
-                BorderBrush="{DynamicResource AppCardBorderBrush}" 
+                Background="{DynamicResource AppPopupBrush}"
+                BorderBrush="{DynamicResource AppPopupBorderBrush}"
                 BorderThickness="1" CornerRadius="8"
                 Visibility="Collapsed" Panel.ZIndex="1000">
             <Border.Effect>

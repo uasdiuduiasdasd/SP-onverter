@@ -3,7 +3,9 @@
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
     <system:String x:Key="Nav_MassConvert">Mass Conversion</system:String>
     <system:String x:Key="Nav_SingleConvert">Single File</system:String>
+    <system:String x:Key="Nav_Convert">Conversion</system:String>
     <system:String x:Key="Nav_Settings">Settings</system:String>
+    <system:String x:Key="Support_Project">Support project</system:String>
 
     <system:String x:Key="Settings_Title">Settings</system:String>
     <system:String x:Key="Settings_Personalization">Personalization</system:String>
@@ -20,37 +22,58 @@
     <system:String x:Key="Settings_General">General</system:String>
     <system:String x:Key="Settings_LanguageTitle">Application language</system:String>
     <system:String x:Key="Settings_LanguageDesc">Select interface language</system:String>
+    <system:String x:Key="Settings_Conversion">Conversion</system:String>
+    <system:String x:Key="Settings_AlwaysIncludeSubfolders">Always include subfolders</system:String>
+    <system:String x:Key="Settings_AlwaysIncludeSubfoldersDesc">When a folder is selected, scan images in all nested folders</system:String>
+    <system:String x:Key="Settings_ShowSupportInHeader">Show support button in header</system:String>
+    <system:String x:Key="Settings_ShowSupportInHeaderDesc">The button stays available here even when hidden from the header</system:String>
     
     <system:String x:Key="Settings_About">About</system:String>
     <system:String x:Key="Settings_VersionPrefix" xml:space="preserve">Version </system:String>
     <system:String x:Key="Settings_Version">Version 1.1</system:String>
 
     <system:String x:Key="Mass_DropZoneTitle">Drag and drop folder here</system:String>
-    <system:String x:Key="Mass_DropZoneSub">or select files to load</system:String>
+    <system:String x:Key="Mass_DropZoneSub">or select a folder to load</system:String>
+    <system:String x:Key="Unified_DropZoneTitle">Drag and drop a file or folder here</system:String>
+    <system:String x:Key="Unified_FormatsSupported">JPG, PNG, WEBP, GIF, HEIC, HEIF, PDF, and more</system:String>
+    <system:String x:Key="Unified_SourcePath">File or folder path</system:String>
+    <system:String x:Key="Drop_ReadyTitle">Release to add</system:String>
+    <system:String x:Key="Drop_ReadySub">The path is ready for conversion</system:String>
+    <system:String x:Key="Drop_PartialTitle">Supported files will be added</system:String>
+    <system:String x:Key="Drop_PartialSub">Unsupported files will be skipped</system:String>
+    <system:String x:Key="Drop_InvalidTitle">No supported files</system:String>
+    <system:String x:Key="Drop_InvalidSub">Choose an image or a folder with supported images</system:String>
     <system:String x:Key="Mass_SourceDir">Source folder</system:String>
     <system:String x:Key="Mass_TargetDir">Target folder</system:String>
     <system:String x:Key="Mass_Browse">Browse...</system:String>
     <system:String x:Key="Mass_IncludeSubfolders">Include subfolders</system:String>
     <system:String x:Key="Mass_Format">Conversion format</system:String>
-    <system:String x:Key="Mass_Quality">Quality</system:String>
+    <system:String x:Key="Mass_Quality">Compression quality</system:String>
     
-    <system:String x:Key="Quality_Medium">Medium</system:String>
-    <system:String x:Key="Quality_High">High</system:String>
-    <system:String x:Key="Quality_Max">Maximum</system:String>
+    <system:String x:Key="Quality_Medium">Medium 75%</system:String>
+    <system:String x:Key="Quality_High">High 90%</system:String>
+    <system:String x:Key="Quality_Max">Max 100%</system:String>
     <system:String x:Key="Quality_Custom">Custom</system:String>
+    <system:String x:Key="Format_Other">Other...</system:String>
     
     <system:String x:Key="Action_Cancel">Cancel</system:String>
     <system:String x:Key="Action_Convert">Convert</system:String>
+    <system:String x:Key="Action_Enable">Enable</system:String>
+    <system:String x:Key="Action_SelectFile">File...</system:String>
+    <system:String x:Key="Action_SelectFolder">Folder...</system:String>
 
     <system:String x:Key="Single_Title">Single File Conversion</system:String>
     <system:String x:Key="Single_Desc">Select or drag and drop a single image for quick processing.</system:String>
-    <system:String x:Key="Single_FormatsSupported">Popular formats are supported</system:String>
+    <system:String x:Key="Single_FormatsSupported">JPG, PNG, WEBP, AVIF, TIFF, GIF, ICO, PDF, and RAW</system:String>
     <system:String x:Key="Mass_Desc">Convert all images in selected folders using common settings.</system:String>
-    <system:String x:Key="Quality_Low">Low</system:String>
+    <system:String x:Key="Quality_Low">Low 50%</system:String>
     
     <system:String x:Key="Mass_FolderNotSelected">Folder not selected</system:String>
     <system:String x:Key="Mass_Preparing">Preparing...</system:String>
     <system:String x:Key="Mass_FilesFound">Files found: {0}</system:String>
+    <system:String x:Key="Mass_FilesFoundWithSkipped">Files found: {0}. Unsupported skipped: {1}.</system:String>
+    <system:String x:Key="Mass_SourceNotFound">Source path was not found</system:String>
+    <system:String x:Key="Mass_NoSupportedFiles">No supported files found</system:String>
     <system:String x:Key="Mass_Converting">Converting: {0} of {1}</system:String>
     <system:String x:Key="Mass_Completed">Completed successfully!</system:String>
 
@@ -64,14 +87,25 @@
     <system:String x:Key="Dialog_SelectImageTitle">Select image for conversion</system:String>
     <system:String x:Key="Dialog_SelectFolderTitle">Select target folder</system:String>
     <system:String x:Key="Dialog_SelectSourceFolderTitle">Select source folder</system:String>
-    <system:String x:Key="Dialog_ImageFilter">Images|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.tga;*.avif;*.heic;*.cr2;*.nef;*.arw;*.dng;*.psd;*.svg;*.gif;*.ico;*.tiff;*.tif;*.jxl|All Files|*.*</system:String>
+    <system:String x:Key="Dialog_ImageFilter">Images|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.tga;*.avif;*.heic;*.heif;*.cr2;*.cr3;*.nef;*.arw;*.dng;*.psd;*.svg;*.gif;*.ico;*.tiff;*.tif;*.jxl;*.pdf;*.dds;*.exr;*.ppm;*.pgm;*.pbm|All Files|*.*</system:String>
     <system:String x:Key="Convert_DeleteOriginal">Delete originals</system:String>
     <system:String x:Key="Convert_DeleteOriginal_Tooltip">Delete source files after successful conversion</system:String>
-    <system:String x:Key="Convert_ExtractAllPages">Extract all frames/pages</system:String>
-    <system:String x:Key="Convert_ExtractAllPages_Tooltip">Extract all pages from PDF/TIFF or frames from GIF/ICO</system:String>
+    <system:String x:Key="Convert_ExtractAllPages">Extract all frames/pages/sizes</system:String>
+    <system:String x:Key="Convert_ExtractAllPages_Tooltip">GIF/WEBP/AVIF: frames; PDF/TIFF: pages; ICO: icon sizes. If disabled, only the first image is converted.</system:String>
+    <system:String x:Key="Hint_ExtractAllAvailable">This file may contain several frames, pages, or sizes. Extract all for this conversion?</system:String>
+    <system:String x:Key="Hint_SubfoldersAvailable">The selected folder has nested folders. Include them for this conversion?</system:String>
+    <system:String x:Key="Convert_Notice_MultipleSingle">This file may contain several frames, pages, or icon sizes. Only the first image will be converted.</system:String>
+    <system:String x:Key="Convert_Notice_MultipleMass">Some found files may contain several frames, pages, or icon sizes. Only the first image of each such file will be converted.</system:String>
+    <system:String x:Key="Convert_Notice_AlphaSingle">When converting to {0}, transparency can be lost: the alpha channel will be replaced with a white background.</system:String>
+    <system:String x:Key="Convert_Notice_AlphaMass">If source files contain transparency, converting to {0} will replace the alpha channel with a white background.</system:String>
+    <system:String x:Key="Convert_Notice_UnsupportedInput">This file type is not supported. Select an image: {0}.</system:String>
+    <system:String x:Key="Convert_Notice_VideoUnsupported">Video is not supported: the app works with images. Extract frames with a video editor or FFmpeg first, then convert the resulting images.</system:String>
     <system:String x:Key="Msg_SuccessTitle">Success</system:String>
     <system:String x:Key="Msg_SuccessSingle">Conversion completed successfully</system:String>
     <system:String x:Key="Msg_SuccessMass">Converted files: {0}</system:String>
+    <system:String x:Key="Msg_ConversionSummary">Done: {0} successful, {1} failed, {2} skipped</system:String>
+    <system:String x:Key="Msg_PartialTitle">Completed with errors</system:String>
+    <system:String x:Key="Msg_PartialMass">Converted files: {0}. Failed files: {1}.</system:String>
     <system:String x:Key="Msg_CancelledTitle">Cancelled</system:String>
     <system:String x:Key="Msg_CancelledSingle">Single conversion was cancelled</system:String>
     <system:String x:Key="Msg_CancelledMass">Mass conversion was cancelled</system:String>
@@ -81,5 +115,5 @@
     <system:String x:Key="Msg_ScanProgress">Scanning folder...</system:String>
     <system:String x:Key="Msg_OpenFolder">Open folder</system:String>
     <system:String x:Key="Msg_SubfoldersHintTitle">Subfolders Required</system:String>
-    <system:String x:Key="Msg_SubfoldersHint">No images directly in this folder, but subfolders exist. Check "Include subfolders".</system:String>
+    <system:String x:Key="Msg_SubfoldersHint">This folder has nested folders. Enable them for the current conversion.</system:String>
 </ResourceDictionary>

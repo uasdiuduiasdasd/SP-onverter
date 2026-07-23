@@ -6,13 +6,13 @@
   [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D4?style=flat-square&logo=windows)](https://microsoft.com/windows)
   [![UI](https://img.shields.io/badge/UI-Fluent%20WPF-0078D4?style=flat-square)](https://github.com/lepoco/wpfui)
   [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
-  [![Release](https://img.shields.io/badge/Release-v1.0-blue.svg?style=flat-square)](https://github.com/uasdiuduiasdasd/SP-onverter/releases)
+  [![Release](https://img.shields.io/badge/Release-v1.1-blue.svg?style=flat-square)](https://github.com/uasdiuduiasdasd/SP-onverter/releases)
 
 </div>
 
 ## Overview
 
-SP Converter is a Windows application designed for fast, multithreaded image processing and format conversion. It supports both individual file processing and batch conversion of large volumes of images, making effective use of the capabilities of multi-core processors
+SP Converter is a Windows application designed for fast, multithreaded image processing and format conversion. It supports both single-file and folder-based conversion, making effective use of multi-core processors.
 
 ## Technical Specifications & Features
 
@@ -23,15 +23,18 @@ SP Converter is a Windows application designed for fast, multithreaded image pro
   - Dynamic responsive layout with hardware-accelerated rendering.
 - **Image Processing Capabilities:**
   - **EXIF Auto-Orientation:** Automatic rotation based on camera and smartphone EXIF metadata tags.
-  - **Alpha Channel Handling:** Automatic background substitution for transparent PNG formats when converting to lossy targets (e.g., JPEG).
-  - **Compression Tuning:** Dedicated lossy compression controls (25%, 50%, 80%, 100%, Custom) isolated from lossless targets.
+  - **Alpha Channel Handling:** Automatic white-background flattening when converting transparent images to targets that do not preserve alpha, such as JPEG and BMP.
+  - **Compression Tuning:** Dedicated lossy compression controls (50%, 75%, 90%, 100%, Custom) isolated from lossless targets.
+  - **Multi-Image Containers:** Optional extraction of all frames, pages, or icon sizes from GIF, WEBP, AVIF, TIFF, PDF, ICO, HEIC, and HEIF files.
+  - **ICO Output:** Large source images are converted into a multi-size icon set automatically.
 - **Automated Directory Management:**
   - Automatic creation of target output subfolders for batch operations in root/system paths.
   - Collision-free file naming (`Converted (1)`).
 - **Multilingual Support:** Native English and Russian language localization.
 - **Supported Formats:**
-  - **Input:** JPG, JPEG, PNG, WEBP, AVIF, HEIC, BMP, TGA, TIFF, RAW (CR2, CR3, NEF, ARW, DNG).
-  - **Output:** JPG, JPEG, PNG, WEBP, BMP, TGA, AVIF, HEIC.
+  - **Input:** JPG, JPEG, PNG, WEBP, AVIF, BMP, TIFF/TIF, TGA, GIF, ICO, JXL, PDF, HEIC, HEIF, PSD, SVG, DDS, EXR, PPM, PGM, PBM, RAW (CR2, CR3, NEF, ARW, DNG).
+  - **Output:** JPG, JPEG, PNG, WEBP, GIF, PDF, TIFF, BMP, ICO, AVIF, JXL, TGA, SVG, PSD, DDS, EXR, PPM, PGM, PBM.
+  - **Input-only in the bundled build:** HEIC and HEIF can be read, but are not offered as output formats because the current bundled encoder does not support writing them.
 
 ## Architecture & Dependencies
 
@@ -56,10 +59,12 @@ SP Converter is a Windows application designed for fast, multithreaded image pro
    dotnet build SPConverter.slnx -c Release
    ```
 
-3. **Publish distribution:**
-   ```bash
-   dotnet publish src/SPConverter.csproj -c Release -r win-x64 --self-contained false -o ./publish
+3. **Build clean release files:**
+   ```powershell
+   .\build-release.ps1
    ```
+
+   The script runs tests, publishes a self-contained portable build, creates an Inno Setup installer, and places both release artifacts in `setup/`.
 
 ## Installation
 

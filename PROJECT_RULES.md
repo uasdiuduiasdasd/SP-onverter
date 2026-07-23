@@ -19,19 +19,20 @@
 
 ## 3. Размеры и Стилистика Окна (`MainWindow.xaml`)
 - **Габариты окна:** 
-  - `Height="810"`
-  - `Width="570"`
-  - `MinHeight="650"`
-  - `MinWidth="460"`
-- **Принцип UI:** Все элементы управления (включая выбор форматов, переключатели и кнопки конвертации) должны помещаться на экране **без появления вертикального скроллбара**.
+  - `Height="680"`
+  - `Width="620"`
+  - `MinHeight="540"`
+  - `MinWidth="520"`
+- **Принцип UI:** Основные элементы конвертации должны помещаться компактно; если скролл нужен на маленьком экране, скорость прокрутки должна оставаться нормальной и предсказуемой.
 - **Фреймворк UI:** WPF UI (`Wpf.Ui`) + `CommunityToolkit.Mvvm`.
 
 ---
 
 ## 4. Поддержка Форматов и Многостраничность
-- **Входные форматы (Input):** JPG, JPEG, PNG, WEBP, AVIF, HEIC, BMP, TGA, TIFF, ICO, JXL, PDF, GIF, RAW (CR2, NEF, ARW, DNG).
-- **Выходные форматы (Output):** JPG, JPEG, PNG, WEBP, BMP, TGA, AVIF, HEIC, TIFF, ICO, JXL, PDF, GIF.
-- **Извлечение многостраничных/многокадровых файлов (PDF, TIFF, GIF, ICO):**
+- **Входные форматы (Input):** JPG, JPEG, PNG, WEBP, AVIF, BMP, TIFF/TIF, TGA, GIF, ICO, JXL, PDF, HEIC, HEIF, PSD, SVG, DDS, EXR, PPM, PGM, PBM, RAW (CR2, CR3, NEF, ARW, DNG).
+- **Выходные форматы (Output):** JPG, JPEG, PNG, WEBP, GIF, PDF, TIFF, BMP, ICO, AVIF, JXL, TGA, SVG, PSD, DDS, EXR, PPM, PGM, PBM.
+- **HEIC/HEIF:** в текущей bundled-сборке поддерживаются как входные форматы, но не предлагаются как выходные, потому что кодек Magick.NET не поддерживает запись.
+- **Извлечение многостраничных/многокадровых файлов (GIF, WEBP, AVIF, TIFF/TIF, PDF, ICO, HEIC, HEIF):**
   - Регулируется переключателем `ExtractAllPages` ("Извлечь все кадры/страницы").
   - По умолчанию переключатель **ВЫКЛЮЧЕН** (извлекается только 1-й кадр, чтобы не создавать лишних файлов).
   - Если включен: используется `MagickImageCollection`, а выходные файлы именуются с суффиксами `_page1`, `_page2` и т.д.
@@ -50,13 +51,13 @@
 - **Инструмент сборки инсталлятора (Inno Setup):** `ISCC.exe` находится по пути:
   `C:\Users\Hser\.nuget\packages\tools.innosetup\6.4.2\tools\ISCC.exe`
 - **Команды сборки:**
-  - **Portable exe:** `dotnet publish src/SPConverter.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish\portable`
-  - **Setup.exe:** `& "C:\Users\Hser\.nuget\packages\tools.innosetup\6.4.2\tools\ISCC.exe" SPConverter.iss`
-  - **ZIP-архив:** `Compress-Archive -Path publish\portable\* -DestinationPath publish\SPConverter_v1.1_Portable.zip -Force`
+  - **Полная сборка релиза:** `.\build-release.ps1`
+  - **CMD-ярлык для пользователя:** `.\build-release.cmd`
+  - Скрипт запускает тесты, публикует portable-сборку, собирает Inno Setup установщик и создает ZIP-архив в папке `setup`.
 
 ---
 
 ## 7. Тестирование
 - Тесты находятся в проекте `tests/SPConverter.Tests`.
 - Запуск тестов: `dotnet test tests/SPConverter.Tests/SPConverter.Tests.csproj`.
-- Все 20 тестов должны быть зелеными перед каждым релизом.
+- Все тесты должны быть зелеными перед каждым релизом.

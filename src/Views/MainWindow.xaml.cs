@@ -1,5 +1,8 @@
 using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
 using Wpf.Ui;
 using SPConverter.ViewModels;
 using SPConverter.Views.Pages;
@@ -10,18 +13,24 @@ namespace SPConverter.Views
     public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly SettingsViewModel _settingsViewModel;
+        private const string SupportProjectUrl = "https://github.com/sponsors/uasdiuduiasdasd";
 
         private string _notificationTargetFolder = string.Empty;
         private System.Windows.Threading.DispatcherTimer? _notificationTimer;
+        private bool _isSettingsOpen;
 
         public MainWindow(
             MainViewModel viewModel,
             IServiceProvider serviceProvider,
-            ISnackbarService snackbarService)
+            ISnackbarService snackbarService,
+            SettingsViewModel settingsViewModel)
         {
             DataContext = viewModel;
             _serviceProvider = serviceProvider;
+            _settingsViewModel = settingsViewModel;
             InitializeComponent();
+            FitAndCenterOnStartup();
 
             // Initial navigation is needed here because XAML Checked events fire before ContentFrame is initialized
             if (ContentFrame != null)
@@ -31,8 +40,27 @@ namespace SPConverter.Views
 
             snackbarService.SetSnackbarPresenter(SnackbarPresenter);
 
+            UpdateSupportProjectVisibility();
+            _settingsViewModel.PropertyChanged += OnSettingsViewModelPropertyChanged;
+
             // Subscribe to custom theme-matched Notification Toast
             SPConverter.Services.NotificationService.OnShowNotification += ShowNotificationToast;
+        }
+
+        private void FitAndCenterOnStartup()
+        {
+            Rect workArea = SystemParameters.WorkArea;
+
+            double targetWidth = double.IsNaN(Width) ? MinWidth : Width;
+            double targetHeight = double.IsNaN(Height) ? MinHeight : Height;
+
+            MinWidth = Math.Min(MinWidth, workArea.Width);
+            MinHeight = Math.Min(MinHeight, workArea.Height);
+            Width = Math.Min(targetWidth, workArea.Width);
+            Height = Math.Min(targetHeight, workArea.Height);
+
+            Left = workArea.Left + Math.Max(0, (workArea.Width - Width) / 2);
+            Top = workArea.Top + Math.Max(0, (workArea.Height - Height) / 2);
         }
 
         private void ShowNotificationToast(SPConverter.Services.NotificationRequest req)
@@ -83,22 +111,54 @@ namespace SPConverter.Views
             _notificationTimer?.Stop();
         }
 
-        private void NavSingle_Checked(object sender, RoutedEventArgs e)
+        private void OnSettingsToggleClick(object sender, RoutedEventArgs e)
         {
-            if (ContentFrame != null)
-                ContentFrame.Navigate(_serviceProvider.GetRequiredService<SingleConvertPage>());
+            if (_isSettingsOpen)
+            {
+                NavigateToConverter();
+            }
+            else
+            {
+                NavigateToSettings();
+            }
         }
 
-        private void NavMass_Checked(object sender, RoutedEventArgs e)
+        private void NavigateToConverter()
         {
-            if (ContentFrame != null)
-                ContentFrame.Navigate(_serviceProvider.GetRequiredService<MassConvertPage>());
+            ContentFrame.Navigate(_serviceProvider.GetRequiredService<MassConvertPage>());
+            _isSettingsOpen = false;
+            SettingsToggleButton.SetResourceReference(ContentControl.ContentProperty, "Nav_Settings");
         }
 
-        private void NavSettings_Checked(object sender, RoutedEventArgs e)
+        private void NavigateToSettings()
         {
-            if (ContentFrame != null)
-                ContentFrame.Navigate(_serviceProvider.GetRequiredService<SettingsPage>());
+            ContentFrame.Navigate(_serviceProvider.GetRequiredService<SettingsPage>());
+            _isSettingsOpen = true;
+            SettingsToggleButton.SetResourceReference(ContentControl.ContentProperty, "Nav_Convert");
+        }
+
+        private void OnSupportProjectClick(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = SupportProjectUrl,
+                UseShellExecute = true
+            });
+        }
+
+        private void OnSettingsViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SettingsViewModel.ShowSupportButtonInHeader))
+            {
+                UpdateSupportProjectVisibility();
+            }
+        }
+
+        private void UpdateSupportProjectVisibility()
+        {
+            SupportProjectButton.Visibility = _settingsViewModel.ShowSupportButtonInHeader
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
     }
 }

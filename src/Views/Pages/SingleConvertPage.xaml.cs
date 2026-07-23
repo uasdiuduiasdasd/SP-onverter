@@ -1,5 +1,7 @@
 using System.Windows.Controls;
+using System.Windows.Input;
 using SPConverter.ViewModels;
+using SPConverter.Views;
 
 namespace SPConverter.Views.Pages;
 
@@ -10,12 +12,6 @@ public partial class SingleConvertPage : Page
         DataContext = viewModel;
         InitializeComponent();
     }
-    private static readonly HashSet<string> _acceptedExtensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".jpg", ".jpeg", ".png", ".webp", ".avif", ".bmp", ".tga",
-        ".tiff", ".tif", ".heic", ".cr2", ".cr3", ".nef", ".arw", ".dng",
-        ".psd", ".svg", ".gif", ".ico", ".jxl"
-    };
 
     private void OnDragOver(object sender, System.Windows.DragEventArgs e)
     {
@@ -33,12 +29,13 @@ public partial class SingleConvertPage : Page
             string[] files = (string[])e.Data.GetData(System.Windows.DataFormats.FileDrop);
             if (files != null && files.Length > 0 && DataContext is SingleConvertViewModel vm)
             {
-                string ext = System.IO.Path.GetExtension(files[0]);
-                if (!string.IsNullOrEmpty(ext) && _acceptedExtensions.Contains(ext))
-                {
-                    vm.SelectedFile = files[0];
-                }
+                vm.SelectedFile = files[0];
             }
         }
+    }
+
+    private void OnPageScrollViewerPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        ScrollViewerWheel.ScrollByFixedStep(sender, e);
     }
 }

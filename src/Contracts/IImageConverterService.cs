@@ -9,7 +9,7 @@ namespace SPConverter.Contracts;
 public interface IImageConverterService
 {
     /// <summary>
-    /// Массовая конвертация списка файлов.
+    /// Converts every file that can be processed; throws ConversionBatchException after the batch if any files fail.
     /// </summary>
     Task ConvertFilesAsync(
         IEnumerable<string> filePaths, 
@@ -19,7 +19,7 @@ public interface IImageConverterService
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Конвертация одного файла.
+    /// Converts one file or propagates the conversion, write, delete, or cancellation error to the caller.
     /// </summary>
     Task ConvertFileAsync(
         string filePath, 

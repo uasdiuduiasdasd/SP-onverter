@@ -9,26 +9,50 @@ namespace SPConverter.Tests.Views;
 public class MainWindowTests
 {
     [Fact]
-    public void MainWindow_ShouldHaveSufficientInitialHeight_ToPreventScrolling()
+    public void MainWindow_ShouldStayCompact_ForLaptopScreens()
     {
-        // Arrange
-        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-        string xamlPath = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "src", "Views", "MainWindow.xaml"));
-        
-        Assert.True(File.Exists(xamlPath), $"Could not find MainWindow.xaml at {xamlPath}");
+        XElement root = LoadMainWindowRoot();
 
-        // Act
-        var xdoc = XDocument.Load(xamlPath);
-        var root = xdoc.Root;
-        
-        var heightAttr = root?.Attribute("Height")?.Value;
-        var minHeightAttr = root?.Attribute("MinHeight")?.Value;
+        var heightAttr = root.Attribute("Height")?.Value;
+        var minHeightAttr = root.Attribute("MinHeight")?.Value;
 
-        // Assert
         double height = double.Parse(heightAttr ?? "0");
         double minHeight = double.Parse(minHeightAttr ?? "0");
 
-        height.Should().BeGreaterThanOrEqualTo(810, "Window height must be large enough to show all controls without scrolling");
-        minHeight.Should().BeGreaterThanOrEqualTo(650, "Window minimum height must prevent UI squishing");
+        height.Should().BeLessThanOrEqualTo(680, "unified UI should fit better on laptop screens");
+        minHeight.Should().BeLessThanOrEqualTo(540, "minimum height should not force the app off small screens");
+    }
+
+    [Fact]
+    public void MainWindow_ShouldUseManualStartupLocation_ForCustomCentering()
+    {
+        XElement root = LoadMainWindowRoot();
+
+        string startupLocation = root.Attribute("WindowStartupLocation")?.Value ?? string.Empty;
+
+        startupLocation.Should().Be("Manual", "startup position is calculated from the screen work area and window size");
+    }
+
+    [Fact]
+    public void MainWindow_ShouldRemoveModeTabs()
+    {
+        XElement root = LoadMainWindowRoot();
+        string xaml = root.ToString(SaveOptions.DisableFormatting);
+
+        xaml.Should().NotContain("Nav_MassConvert");
+        xaml.Should().NotContain("Nav_SingleConvert");
+        xaml.Should().Contain("Support_Project");
+        xaml.Should().Contain("Nav_Settings");
+    }
+
+    private static XElement LoadMainWindowRoot()
+    {
+        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+        string xamlPath = Path.GetFullPath(
+            Path.Combine(baseDir, "..", "..", "..", "..", "..", "src", "Views", "MainWindow.xaml"));
+
+        Assert.True(File.Exists(xamlPath), $"Could not find MainWindow.xaml at {xamlPath}");
+
+        return XDocument.Load(xamlPath).Root ?? throw new InvalidOperationException("MainWindow.xaml root element is missing");
     }
 }

@@ -6,7 +6,8 @@ AppPublisher=SP Software
 AppPublisherURL=https://github.com/uasdiuduiasdasd/SP-onverter
 AppSupportURL=https://github.com/uasdiuduiasdasd/SP-onverter/issues
 AppUpdatesURL=https://github.com/uasdiuduiasdasd/SP-onverter/releases
-DefaultDirName={autopf}\SPConverter
+DefaultDirName={localappdata}\Programs\SPConverter
+PrivilegesRequired=lowest
 UsePreviousAppDir=no
 DisableDirPage=no
 DisableProgramGroupPage=yes
@@ -22,7 +23,6 @@ ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 WizardStyle=modern
 ShowLanguageDialog=yes
-PrivilegesRequiredOverridesAllowed=dialog
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -37,7 +37,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "startmenuicon"; Description: "{cm:CreateStartMenuIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
-Source: "publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "publish\portable\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "src\Assets\Logo.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]

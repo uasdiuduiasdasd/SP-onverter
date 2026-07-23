@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -18,337 +20,718 @@ namespace SPConverter.ViewModels;
 
 public partial class MassConvertViewModel : ViewModelBase
 {
+    private static readonly HashSet<string> PopularTargetFormats = new(
+        new[] { "JPG", "PNG", "WEBP", "GIF", "AVIF", "JXL", "PDF" },
+        StringComparer.OrdinalIgnoreCase);
+
     private readonly IImageConverterService _converterService;
     private readonly IFileManagementService _fileService;
     private readonly ISnackbarService _snackbarService;
-    
-    private string _lastOutputDir = "";
-    private CancellationTokenSource? _cts;
+    private readonly SettingsViewModel _settings;
 
-    [ObservableProperty] 
+    private string _lastOutputDir = string.Empty;
+    private CancellationTokenSource? _cts;
+    private CancellationTokenSource? _scanCts;
+    private bool _isSettingAutomaticTargetDirectory;
+    private bool _targetDirectorySelectedManually;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSourceDirectory))]
     private string? _sourceDirectory;
 
-    [ObservableProperty] 
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasTargetDirectory))]
     private string? _targetDirectory;
 
-    public bool HasSourceDirectory => !string.IsNullOrEmpty(SourceDirectory);
-    public bool HasTargetDirectory => !string.IsNullOrEmpty(TargetDirectory);
-    [ObservableProperty] 
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConvertCommand))]
+    [NotifyPropertyChangedFor(nameof(ShowSubfoldersSuggestion))]
     private bool _includeSubfolders;
-    [ObservableProperty] private string _targetFormat = "JPEG";
-    
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ConversionNoticeText))]
+    [NotifyPropertyChangedFor(nameof(HasConversionNotice))]
+    [NotifyPropertyChangedFor(nameof(ShowQualityOptions))]
+    [NotifyPropertyChangedFor(nameof(IsOtherFormatSelected))]
+    [NotifyPropertyChangedFor(nameof(OtherFormatButtonText))]
+    private string _targetFormat = "JPG";
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsCustomQuality))]
     private int _quality = 100;
 
-    partial void OnQualityChanged(int value)
-    {
-        if (value < 1) _quality = 1;
-        else if (value > 100) _quality = 100;
-    }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowProgressDetails))]
+    private int _progressMax;
 
-    public bool IsCustomQuality
-    {
-        get => Quality != 25 && Quality != 50 && Quality != 80 && Quality != 100;
-        set
-        {
-            if (value && (Quality == 25 || Quality == 50 || Quality == 80 || Quality == 100))
-            {
-                Quality = 90;
-            }
-        }
-    }
+    [ObservableProperty]
+    private int _progressValue;
 
-    [ObservableProperty] private bool _deleteOriginal;
-    [ObservableProperty] private bool _extractAllPages;
-    
-    [ObservableProperty] 
+    [ObservableProperty]
+    private string? _progressStatus;
+
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConvertCommand))]
     [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
     private bool _isConverting;
-    [ObservableProperty] private int _progressValue;
-    
-    [ObservableProperty] 
-    [NotifyPropertyChangedFor(nameof(ShowProgressDetails))]
-    private int _progressMax = 0;
-    
-    [ObservableProperty] private string? _progressStatus;
 
-    public bool ShowProgressDetails => ProgressMax > 0;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ConvertCommand))]
+    private bool _isScanning;
 
-    public ObservableCollection<string> FoundFiles { get; } = new();
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSkippedFiles))]
+    private int _skippedFiles;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowSubfoldersSuggestion))]
+    private bool _hasNestedFolders;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ConversionNoticeText))]
+    [NotifyPropertyChangedFor(nameof(HasConversionNotice))]
+    [NotifyPropertyChangedFor(nameof(ShowExtractAllSuggestion))]
+    private bool _extractAllPagesForCurrentConversion;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DropZoneTitle))]
+    [NotifyPropertyChangedFor(nameof(DropZoneSubtitle))]
+    private string _dragDropState = "Normal";
 
     public MassConvertViewModel(
-        IImageConverterService converterService, 
+        IImageConverterService converterService,
         IFileManagementService fileService,
-        ISnackbarService snackbarService)
+        ISnackbarService snackbarService,
+        SettingsViewModel settings)
     {
         _converterService = converterService;
         _fileService = fileService;
         _snackbarService = snackbarService;
+        _settings = settings;
+        IncludeSubfolders = _settings.AlwaysIncludeSubfolders;
+        _settings.PropertyChanged += OnSettingsPropertyChanged;
+    }
+
+    public ObservableCollection<string> FoundFiles { get; } = new();
+    public bool HasSourceDirectory => !string.IsNullOrWhiteSpace(SourceDirectory);
+    public bool HasTargetDirectory => !string.IsNullOrWhiteSpace(TargetDirectory);
+    public bool HasSkippedFiles => SkippedFiles > 0;
+    public bool ShowProgressDetails => ProgressMax > 0;
+    public bool ShowQualityOptions => ImageFormatRules.TargetFormatUsesQuality(TargetFormat);
+    public bool IsOtherFormatSelected => !PopularTargetFormats.Contains(TargetFormat);
+    public string OtherFormatButtonText => IsOtherFormatSelected ? TargetFormat.ToUpperInvariant() : ResourceText("Format_Other", "Other...");
+    public string ConversionNoticeText => BuildConversionNoticeText();
+    public bool HasConversionNotice => !string.IsNullOrEmpty(ConversionNoticeText);
+    public bool ShowSubfoldersSuggestion => HasNestedFolders && !IncludeSubfolders && !_settings.AlwaysIncludeSubfolders;
+    public bool ShowExtractAllSuggestion => HasExtractableFiles() && !_settings.ExtractAllPagesByDefault && !ExtractAllPagesForCurrentConversion;
+    public string DropZoneTitle => BuildDropZoneTitle();
+    public string DropZoneSubtitle => BuildDropZoneSubtitle();
+
+    public bool IsCustomQuality
+    {
+        get => Quality != 50 && Quality != 75 && Quality != 90 && Quality != 100;
+        set
+        {
+            if (value && (Quality == 50 || Quality == 75 || Quality == 90 || Quality == 100))
+            {
+                Quality = 85;
+            }
+        }
+    }
+
+    partial void OnSourceDirectoryChanged(string? value)
+    {
+        _scanCts?.Cancel();
+        ResetScanResults();
+        IncludeSubfolders = _settings.AlwaysIncludeSubfolders;
+        ApplyAutomaticTargetDirectory(value);
+        ConvertCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnTargetDirectoryChanged(string? value)
+    {
+        if (!_isSettingAutomaticTargetDirectory)
+        {
+            _targetDirectorySelectedManually = !string.IsNullOrWhiteSpace(value);
+        }
     }
 
     partial void OnIncludeSubfoldersChanged(bool value)
     {
-        HighlightSubfoldersHint = false;
-        _ = ScanDirectoryAsync();
+        HasNestedFolders = false;
+        NotifySourceHintsChanged();
+    }
+
+    partial void OnTargetFormatChanged(string value)
+    {
+        if (!ShowQualityOptions && IsCustomQuality)
+        {
+            Quality = 100;
+        }
+    }
+
+    partial void OnQualityChanged(int value)
+    {
+        int clampedQuality = Math.Clamp(value, 1, 100);
+        if (clampedQuality != value)
+        {
+            Quality = clampedQuality;
+        }
+    }
+
+    private void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SettingsViewModel.ExtractAllPagesByDefault))
+        {
+            NotifySourceHintsChanged();
+            return;
+        }
+
+        if (e.PropertyName != nameof(SettingsViewModel.AlwaysIncludeSubfolders))
+        {
+            return;
+        }
+
+        if (_settings.AlwaysIncludeSubfolders && !IncludeSubfolders)
+        {
+            IncludeSubfolders = true;
+            if (HasSourceDirectory && !IsConverting)
+            {
+                _ = ScanDirectoryAsync();
+            }
+        }
+
+        NotifySourceHintsChanged();
     }
 
     [RelayCommand]
     private async Task BrowseSourceAsync()
     {
-        var title = Application.Current?.Resources["Dialog_SelectSourceFolderTitle"] as string ?? "Select source folder";
-        var dialog = new Microsoft.Win32.OpenFolderDialog
-        {
-            Title = title
-        };
+        var title = ResourceText("Dialog_SelectSourceFolderTitle", "Select source folder");
+        var dialog = new Microsoft.Win32.OpenFolderDialog { Title = title };
+
         if (dialog.ShowDialog() == true)
         {
-            SourceDirectory = dialog.FolderName;
-            await ScanDirectoryAsync();
+            await SetSourcePathAsync(dialog.FolderName);
+        }
+    }
+
+    [RelayCommand]
+    private async Task BrowseFileAsync()
+    {
+        var filter = ResourceText("Dialog_ImageFilter", "Images|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.gif;*.ico;*.pdf|All Files|*.*");
+        var title = ResourceText("Dialog_SelectImageTitle", "Select image for conversion");
+        var dialog = new Microsoft.Win32.OpenFileDialog { Filter = filter, Title = title };
+
+        if (dialog.ShowDialog() == true)
+        {
+            await SetSourcePathAsync(dialog.FileName);
         }
     }
 
     [RelayCommand]
     private void BrowseTarget()
     {
-        var title = Application.Current?.Resources["Dialog_SelectFolderTitle"] as string ?? "Select target folder";
-        var dialog = new Microsoft.Win32.OpenFolderDialog
-        {
-            Title = title
-        };
+        var title = ResourceText("Dialog_SelectFolderTitle", "Select target folder");
+        var dialog = new Microsoft.Win32.OpenFolderDialog { Title = title };
+
         if (dialog.ShowDialog() == true)
         {
             TargetDirectory = dialog.FolderName;
         }
     }
 
-    private CancellationTokenSource? _scanCts;
+    [RelayCommand]
+    private void SelectTargetFormat(string format)
+    {
+        if (ImageFormatRules.IsSupportedTargetFormat(format))
+        {
+            TargetFormat = format.Trim().ToUpperInvariant();
+        }
+    }
+
+    [RelayCommand]
+    private void EnableExtractAllForCurrentConversion()
+    {
+        ExtractAllPagesForCurrentConversion = true;
+    }
+
+    [RelayCommand]
+    private async Task EnableSubfoldersForCurrentSelectionAsync()
+    {
+        IncludeSubfolders = true;
+        await ScanDirectoryAsync();
+    }
+
+    public async Task SetSourcePathAsync(string sourcePath)
+    {
+        SourceDirectory = sourcePath;
+        await ScanDirectoryAsync();
+    }
+
+    public void PreviewDropPath(string sourcePath)
+    {
+        DragDropState = ResolveDragDropState(sourcePath);
+    }
+
+    public void ClearDropPreview()
+    {
+        DragDropState = "Normal";
+    }
 
     [RelayCommand]
     private async Task ScanDirectoryAsync()
     {
-        if (string.IsNullOrEmpty(SourceDirectory)) return;
+        if (string.IsNullOrWhiteSpace(SourceDirectory) || IsConverting) return;
 
-        _scanCts?.Cancel();
-        _scanCts?.Dispose();
-        _scanCts = new CancellationTokenSource();
-        var token = _scanCts.Token;
+        CancellationTokenSource scanCancellation = ResetScanCancellation();
+        var token = scanCancellation.Token;
 
-        IsConverting = true;
-        ProgressStatus = Application.Current?.Resources["Msg_ScanProgress"] as string ?? "Scanning folder...";
+        IsScanning = true;
+        ProgressStatus = ResourceText("Msg_ScanProgress", "Scanning...");
 
         try
         {
-            var files = await Task.Run(() => _fileService.GetImagesInDirectory(SourceDirectory, IncludeSubfolders).ToList(), token);
-            token.ThrowIfCancellationRequested();
-
-            FoundFiles.Clear();
-            foreach (var f in files) 
-            {
-                if (token.IsCancellationRequested) break;
-                FoundFiles.Add(f);
-            }
-            
-            if (!token.IsCancellationRequested)
-            {
-                var template = Application.Current?.Resources["Mass_FilesFound"] as string ?? "Files found: {0}";
-                ProgressStatus = string.Format(template, FoundFiles.Count);
-                ProgressMax = FoundFiles.Count;
-                ProgressValue = 0;
-            }
+            ImageScanResult scanResult = await ScanSourcePathAsync(token);
+            ApplyScanResult(scanResult);
         }
         catch (OperationCanceledException)
         {
-            // Scanning cancelled by a newer scan request
+            Debug.WriteLine("Source scan cancelled.");
         }
         catch (Exception ex)
         {
-            var errTemplate = Application.Current?.Resources["Msg_ErrorScan"] as string ?? "Scan error: {0}";
-            ProgressStatus = string.Format(errTemplate, ex.Message);
-            FoundFiles.Clear();
+            ApplyScanError(ex);
         }
         finally
         {
-            IsConverting = false;
-            ConvertCommand.NotifyCanExecuteChanged();
+            FinishCurrentScan(token);
         }
     }
-
-    [ObservableProperty] private bool _highlightSubfoldersHint;
-
-    private bool CanConvert() => !IsConverting && HasSourceDirectory;
 
     [RelayCommand(CanExecute = nameof(CanConvert))]
     private async Task ConvertAsync()
     {
-        if (string.IsNullOrEmpty(SourceDirectory) || IsConverting) return;
+        if (string.IsNullOrWhiteSpace(SourceDirectory) || IsConverting) return;
 
+        await EnsureSourceScannedAsync();
         if (!FoundFiles.Any())
         {
-            bool hasSubfolders = false;
-            try
-            {
-                if (Directory.Exists(SourceDirectory))
-                {
-                    hasSubfolders = Directory.EnumerateDirectories(SourceDirectory).Any();
-                }
-            }
-            catch { }
-
-            if (hasSubfolders && !IncludeSubfolders)
-            {
-                HighlightSubfoldersHint = true;
-
-                var hintTitle = Application.Current?.Resources["Msg_SubfoldersHintTitle"] as string ?? "Subfolders Required";
-                var hintMsg = Application.Current?.Resources["Msg_SubfoldersHint"] as string ?? "No images directly in this folder, but subfolders exist. Check \"Include subfolders\".";
-
-                NotificationService.Show(hintTitle, hintMsg, string.Empty, false);
-                return;
-            }
-            else
-            {
-                var errTitle = Application.Current?.Resources["Msg_ErrorTitle"] as string ?? "Error";
-                var noFilesMsg = Application.Current?.Resources["Mass_FolderNotSelected"] as string ?? "No supported files found in selected folder";
-                NotificationService.Show(errTitle, noFilesMsg, string.Empty, false);
-                return;
-            }
+            ShowNoSupportedFilesMessage();
+            return;
         }
 
-        HighlightSubfoldersHint = false;
-        _cts = new CancellationTokenSource();
-        IsConverting = true;
-        ProgressValue = 0;
-        ProgressMax = FoundFiles.Count;
-        ProgressStatus = Application.Current?.Resources["Mass_Preparing"] as string ?? "Preparing...";
+        await ConvertFoundFilesAsync();
+    }
 
-        var progress = new Progress<ConversionProgress>(p =>
+    private bool CanConvert() => !IsConverting && !IsScanning && HasSourceDirectory;
+
+    private async Task EnsureSourceScannedAsync()
+    {
+        if (!FoundFiles.Any())
         {
-            ProgressValue = p.ProcessedFiles;
-            var template = Application.Current?.Resources["Mass_Converting"] as string ?? "Converting: {0} of {1}";
-            ProgressStatus = string.Format(template, p.ProcessedFiles, p.TotalFiles);
-        });
-
-        try
-        {
-            var options = new ConversionOptions
-            {
-                TargetFormat = TargetFormat,
-                Quality = Quality,
-                DeleteOriginalFiles = DeleteOriginal,
-                ExtractAllPages = ExtractAllPages
-            };
-            
-            _lastOutputDir = string.IsNullOrWhiteSpace(TargetDirectory) 
-                ? Path.Combine(SourceDirectory, "Converted") 
-                : TargetDirectory;
-
-            if (!string.IsNullOrWhiteSpace(TargetDirectory) && FoundFiles.Count > 5)
-            {
-                string target = Path.GetFullPath(TargetDirectory);
-                string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-                string docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                string pics = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-                string dl = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-                
-                bool isCluttered = string.Equals(target, desktop, StringComparison.OrdinalIgnoreCase) ||
-                                   string.Equals(target, docs, StringComparison.OrdinalIgnoreCase) ||
-                                   string.Equals(target, pics, StringComparison.OrdinalIgnoreCase) ||
-                                   string.Equals(target, dl, StringComparison.OrdinalIgnoreCase) ||
-                                   Path.GetPathRoot(target) == target;
-
-                if (isCluttered)
-                {
-                    string baseFolderName = "Converted";
-                    string newFolder = Path.Combine(target, baseFolderName);
-                    int counter = 1;
-                    
-                    while (Directory.Exists(newFolder))
-                    {
-                        newFolder = Path.Combine(target, $"{baseFolderName} ({counter})");
-                        counter++;
-                    }
-                    
-                    _lastOutputDir = newFolder;
-                }
-            }
-
-            await _converterService.ConvertFilesAsync(FoundFiles, _lastOutputDir, options, progress, _cts.Token);
-            ProgressStatus = Application.Current?.Resources["Mass_Completed"] as string ?? "Successfully completed!";
-            
-            var successTitle = Application.Current?.Resources["Msg_SuccessTitle"] as string ?? "Success";
-            var successTemplate = Application.Current?.Resources["Msg_SuccessMass"] as string ?? "Converted files: {0}";
-            string successMsg = string.Format(successTemplate, FoundFiles.Count);
-
-            NotificationService.Show(successTitle, successMsg, _lastOutputDir, true);
-        }
-        catch (OperationCanceledException)
-        {
-            var cancelledTitle = Application.Current?.Resources["Msg_CancelledTitle"] as string ?? "Cancelled";
-            var cancelledMsg = Application.Current?.Resources["Msg_CancelledMass"] as string ?? "Mass conversion was cancelled";
-            ProgressStatus = cancelledMsg;
-
-            _snackbarService.Show(
-                cancelledTitle,
-                cancelledMsg,
-                ControlAppearance.Caution,
-                new SymbolIcon(SymbolRegular.Warning24),
-                TimeSpan.FromSeconds(3)
-            );
-        }
-        catch (Exception ex)
-        {
-            var errTitle = Application.Current?.Resources["Msg_ErrorTitle"] as string ?? "Error";
-            var errTemplate = Application.Current?.Resources["Msg_ErrorSingle"] as string ?? "Could not convert: {0}";
-            ProgressStatus = string.Format(errTemplate, ex.Message);
-
-            _snackbarService.Show(
-                errTitle,
-                string.Format(errTemplate, ex.Message),
-                ControlAppearance.Danger,
-                new SymbolIcon(SymbolRegular.ErrorCircle24),
-                TimeSpan.FromSeconds(6)
-            );
-        }
-        finally
-        {
-            IsConverting = false;
-            _cts?.Dispose();
-            _cts = null;
+            await ScanDirectoryAsync();
         }
     }
 
-    private bool CanCancel() => IsConverting;
+    private async Task ConvertFoundFilesAsync()
+    {
+        _cts = new CancellationTokenSource();
+        StartConversionProgress();
+
+        try
+        {
+            ConversionOptions options = BuildConversionOptions();
+            _lastOutputDir = ResolveOutputDirectory();
+            await _converterService.ConvertFilesAsync(FoundFiles, _lastOutputDir, options, CreateProgressReporter(), _cts.Token);
+            ShowSuccessfulConversion();
+        }
+        catch (ConversionBatchException ex)
+        {
+            ShowPartialConversion(ex);
+        }
+        catch (OperationCanceledException)
+        {
+            ShowCancelledConversion();
+        }
+        catch (Exception ex)
+        {
+            ShowConversionError(ex);
+        }
+        finally
+        {
+            FinishConversion();
+        }
+    }
+
+    private CancellationTokenSource ResetScanCancellation()
+    {
+        _scanCts?.Cancel();
+        _scanCts?.Dispose();
+        _scanCts = new CancellationTokenSource();
+        return _scanCts;
+    }
+
+    private async Task<ImageScanResult> ScanSourcePathAsync(CancellationToken token)
+    {
+        string sourcePath = SourceDirectory ?? string.Empty;
+        return await Task.Run(() => _fileService.ScanImagesInPath(sourcePath, IncludeSubfolders), token);
+    }
+
+    private void ApplyScanResult(ImageScanResult scanResult)
+    {
+        FoundFiles.Clear();
+        foreach (string filePath in scanResult.SupportedFiles)
+        {
+            FoundFiles.Add(filePath);
+        }
+
+        SkippedFiles = scanResult.SkippedFiles;
+        HasNestedFolders = scanResult.HasNestedFolders;
+        ProgressValue = 0;
+        ProgressMax = FoundFiles.Count;
+        ProgressStatus = BuildScanStatus(scanResult);
+        NotifySourceHintsChanged();
+    }
+
+    private void ApplyScanError(Exception exception)
+    {
+        var template = ResourceText("Msg_ErrorScan", "Scan error: {0}");
+        ProgressStatus = string.Format(template, ExceptionDisplayMessage.From(exception));
+        FoundFiles.Clear();
+        NotifySourceHintsChanged();
+    }
+
+    private void FinishCurrentScan(CancellationToken token)
+    {
+        if (_scanCts?.Token.Equals(token) != true) return;
+
+        IsScanning = false;
+        ConvertCommand.NotifyCanExecuteChanged();
+    }
+
+    private void StartConversionProgress()
+    {
+        IsConverting = true;
+        ProgressValue = 0;
+        ProgressMax = FoundFiles.Count;
+        ProgressStatus = ResourceText("Mass_Preparing", "Preparing...");
+    }
+
+    private ConversionOptions BuildConversionOptions()
+    {
+        return new ConversionOptions
+        {
+            TargetFormat = TargetFormat,
+            Quality = Quality,
+            DeleteOriginalFiles = _settings.DeleteOriginalsByDefault,
+            ExtractAllPages = _settings.ExtractAllPagesByDefault || ExtractAllPagesForCurrentConversion
+        };
+    }
+
+    private IProgress<ConversionProgress> CreateProgressReporter()
+    {
+        return new Progress<ConversionProgress>(conversionProgress =>
+        {
+            ProgressValue = conversionProgress.ProcessedFiles;
+            var template = ResourceText("Mass_Converting", "Converting: {0} of {1}");
+            ProgressStatus = string.Format(template, conversionProgress.ProcessedFiles, conversionProgress.TotalFiles);
+        });
+    }
+
+    private string ResolveOutputDirectory()
+    {
+        string selectedTargetDirectory = TargetDirectory ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(selectedTargetDirectory))
+        {
+            return AvoidCrowdedOutputFolder(selectedTargetDirectory);
+        }
+
+        return DefaultOutputDirectoryForSource(SourceDirectory ?? string.Empty);
+    }
+
+    private string AvoidCrowdedOutputFolder(string selectedTargetDirectory)
+    {
+        if (FoundFiles.Count <= 5 || !IsCommonUserFolder(selectedTargetDirectory))
+        {
+            return selectedTargetDirectory;
+        }
+
+        return ReserveConvertedFolder(selectedTargetDirectory);
+    }
+
+    private void ShowSuccessfulConversion()
+    {
+        ProgressStatus = ResourceText("Mass_Completed", "Completed successfully!");
+        string title = ResourceText("Msg_SuccessTitle", "Success");
+        string message = BuildConversionSummary(FoundFiles.Count, 0);
+        NotificationService.Show(title, message, _lastOutputDir, true);
+    }
+
+    private void ShowPartialConversion(ConversionBatchException exception)
+    {
+        int failedFiles = exception.Failures.Count;
+        int convertedFiles = Math.Max(0, FoundFiles.Count - failedFiles);
+        string title = ResourceText("Msg_PartialTitle", "Completed with errors");
+        string message = BuildConversionSummary(convertedFiles, failedFiles);
+
+        ProgressStatus = message;
+        NotificationService.Show(title, message, _lastOutputDir, false);
+        ShowSnackbar(title, exception.Message, ControlAppearance.Caution, SymbolRegular.Warning24);
+    }
+
+    private void ShowCancelledConversion()
+    {
+        string title = ResourceText("Msg_CancelledTitle", "Cancelled");
+        string message = ResourceText("Msg_CancelledMass", "Conversion was cancelled");
+        ProgressStatus = message;
+        ShowSnackbar(title, message, ControlAppearance.Caution, SymbolRegular.Warning24);
+    }
+
+    private void ShowConversionError(Exception exception)
+    {
+        string title = ResourceText("Msg_ErrorTitle", "Error");
+        string template = ResourceText("Msg_ErrorSingle", "Could not convert: {0}");
+        string message = string.Format(template, ExceptionDisplayMessage.From(exception));
+
+        ProgressStatus = message;
+        ShowSnackbar(title, message, ControlAppearance.Danger, SymbolRegular.ErrorCircle24);
+    }
+
+    private void FinishConversion()
+    {
+        IsConverting = false;
+        ExtractAllPagesForCurrentConversion = false;
+        _cts?.Dispose();
+        _cts = null;
+    }
+
+    private void ShowNoSupportedFilesMessage()
+    {
+        string title = ShowSubfoldersSuggestion
+            ? ResourceText("Msg_SubfoldersHintTitle", "Subfolders available")
+            : ResourceText("Msg_ErrorTitle", "Error");
+        string message = ShowSubfoldersSuggestion
+            ? ResourceText("Msg_SubfoldersHint", "This folder has subfolders. Enable them to scan deeper.")
+            : ResourceText("Mass_NoSupportedFiles", "No supported files found.");
+
+        NotificationService.Show(title, message, string.Empty, false);
+    }
+
+    private string BuildScanStatus(ImageScanResult scanResult)
+    {
+        if (!scanResult.SourceExists)
+        {
+            return ResourceText("Mass_SourceNotFound", "Source path was not found.");
+        }
+
+        if (scanResult.SupportedFiles.Count == 0)
+        {
+            return ResourceText("Mass_NoSupportedFiles", "No supported files found.");
+        }
+
+        if (scanResult.SkippedFiles > 0)
+        {
+            var template = ResourceText("Mass_FilesFoundWithSkipped", "Found: {0}. Skipped: {1}.");
+            return string.Format(template, scanResult.SupportedFiles.Count, scanResult.SkippedFiles);
+        }
+
+        var foundTemplate = ResourceText("Mass_FilesFound", "Files found: {0}");
+        return string.Format(foundTemplate, scanResult.SupportedFiles.Count);
+    }
+
+    private string BuildConversionSummary(int convertedFiles, int failedFiles)
+    {
+        var template = ResourceText("Msg_ConversionSummary", "Converted: {0}. Errors: {1}. Skipped: {2}.");
+        return string.Format(template, convertedFiles, failedFiles, SkippedFiles);
+    }
+
+    private string ResolveDragDropState(string sourcePath)
+    {
+        ImageScanResult scanResult = _fileService.ScanImagesInPath(sourcePath, includeSubfolders: false);
+        if (!scanResult.SourceExists || (scanResult.SupportedFiles.Count == 0 && !scanResult.HasNestedFolders))
+        {
+            return "Invalid";
+        }
+
+        return scanResult.SkippedFiles > 0 || scanResult.HasNestedFolders ? "Partial" : "Ready";
+    }
+
+    private string BuildDropZoneTitle()
+    {
+        return DragDropState switch
+        {
+            "Ready" => ResourceText("Drop_ReadyTitle", "Release to add"),
+            "Partial" => ResourceText("Drop_PartialTitle", "Supported files will be added"),
+            "Invalid" => ResourceText("Drop_InvalidTitle", "No supported files"),
+            _ => ResourceText("Unified_DropZoneTitle", "Drag and drop a file or folder here")
+        };
+    }
+
+    private string BuildDropZoneSubtitle()
+    {
+        return DragDropState switch
+        {
+            "Ready" => ResourceText("Drop_ReadySub", "The selected path is ready for conversion."),
+            "Partial" => ResourceText("Drop_PartialSub", "Unsupported files will be skipped."),
+            "Invalid" => ResourceText("Drop_InvalidSub", "Choose an image file or a folder with supported images."),
+            _ => ResourceText("Unified_FormatsSupported", "JPG, PNG, WEBP, GIF, HEIC, HEIF, PDF and more")
+        };
+    }
+
+    private void ApplyAutomaticTargetDirectory(string? sourcePath)
+    {
+        if (_targetDirectorySelectedManually) return;
+
+        SetAutomaticTargetDirectory(DefaultOutputDirectoryForSource(sourcePath ?? string.Empty));
+    }
+
+    private void SetAutomaticTargetDirectory(string targetDirectory)
+    {
+        _isSettingAutomaticTargetDirectory = true;
+        TargetDirectory = targetDirectory;
+        _isSettingAutomaticTargetDirectory = false;
+    }
+
+    private static string DefaultOutputDirectoryForSource(string sourcePath)
+    {
+        if (File.Exists(sourcePath))
+        {
+            return Path.GetDirectoryName(sourcePath) ?? string.Empty;
+        }
+
+        return Directory.Exists(sourcePath) ? Path.Combine(sourcePath, "converted") : string.Empty;
+    }
+
+    private static bool IsCommonUserFolder(string directoryPath)
+    {
+        string fullTarget = Path.GetFullPath(directoryPath);
+        string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        string pictures = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+        string downloads = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+
+        return string.Equals(fullTarget, desktop, StringComparison.OrdinalIgnoreCase)
+               || string.Equals(fullTarget, documents, StringComparison.OrdinalIgnoreCase)
+               || string.Equals(fullTarget, pictures, StringComparison.OrdinalIgnoreCase)
+               || string.Equals(fullTarget, downloads, StringComparison.OrdinalIgnoreCase)
+               || Path.GetPathRoot(fullTarget) == fullTarget;
+    }
+
+    private static string ReserveConvertedFolder(string parentDirectory)
+    {
+        string outputDirectory = Path.Combine(parentDirectory, "converted");
+        int counter = 1;
+
+        while (Directory.Exists(outputDirectory))
+        {
+            outputDirectory = Path.Combine(parentDirectory, $"converted ({counter})");
+            counter++;
+        }
+
+        return outputDirectory;
+    }
+
+    private bool HasExtractableFiles()
+    {
+        return FoundFiles.Any(ImageFormatRules.MayContainMultipleImages);
+    }
+
+    private string BuildConversionNoticeText()
+    {
+        var notices = new List<string>();
+        AddBatchMultiImageNotice(notices);
+        AddBatchAlphaNotice(notices);
+        return string.Join(Environment.NewLine + Environment.NewLine, notices);
+    }
+
+    private void AddBatchMultiImageNotice(ICollection<string> notices)
+    {
+        bool extractsAllPages = _settings.ExtractAllPagesByDefault || ExtractAllPagesForCurrentConversion;
+        if (HasExtractableFiles() && !extractsAllPages)
+        {
+            notices.Add(ResourceText(
+                "Convert_Notice_MultipleMass",
+                "Some found files may contain several frames, pages, or icon sizes. Only the first image of each such file will be converted."));
+        }
+    }
+
+    private void AddBatchAlphaNotice(ICollection<string> notices)
+    {
+        if (FoundFiles.Any(ImageFormatRules.SourceMayContainAlpha)
+            && ImageFormatRules.TargetFormatReplacesAlphaWithWhite(TargetFormat))
+        {
+            string template = ResourceText(
+                "Convert_Notice_AlphaMass",
+                "If source files contain transparency, converting to {0} will replace it with a white background.");
+            notices.Add(string.Format(template, TargetFormat.ToUpperInvariant()));
+        }
+    }
+
+    private void NotifySourceHintsChanged()
+    {
+        OnPropertyChanged(nameof(ConversionNoticeText));
+        OnPropertyChanged(nameof(HasConversionNotice));
+        OnPropertyChanged(nameof(ShowExtractAllSuggestion));
+        OnPropertyChanged(nameof(ShowSubfoldersSuggestion));
+    }
+
+    private void ResetScanResults()
+    {
+        FoundFiles.Clear();
+        ProgressStatus = null;
+        ProgressMax = 0;
+        ProgressValue = 0;
+        SkippedFiles = 0;
+        HasNestedFolders = false;
+        ExtractAllPagesForCurrentConversion = false;
+        NotifySourceHintsChanged();
+    }
+
+    private void ShowSnackbar(string title, string message, ControlAppearance appearance, SymbolRegular icon)
+    {
+        _snackbarService.Show(
+            title,
+            message,
+            appearance,
+            new SymbolIcon(icon),
+            TimeSpan.FromSeconds(6));
+    }
+
+    private static string ResourceText(string key, string fallback)
+    {
+        return Application.Current?.Resources[key] as string ?? fallback;
+    }
 
     [RelayCommand(CanExecute = nameof(CanCancel))]
     private void Cancel()
     {
         _cts?.Cancel();
     }
-    
+
+    private bool CanCancel() => IsConverting;
+
     [RelayCommand]
     private void OpenFolder()
     {
         if (Directory.Exists(_lastOutputDir))
+        {
             Process.Start("explorer.exe", _lastOutputDir);
+        }
     }
 
     [RelayCommand]
     private void ClearSource()
     {
         SourceDirectory = string.Empty;
-        FoundFiles.Clear();
-        ProgressStatus = null;
-        ProgressMax = 0;
-        ProgressValue = 0;
+        ResetScanResults();
     }
 
     [RelayCommand]
     private void ClearTarget()
     {
+        _targetDirectorySelectedManually = false;
         TargetDirectory = string.Empty;
+        ApplyAutomaticTargetDirectory(SourceDirectory);
     }
 }

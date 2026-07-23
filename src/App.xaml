@@ -42,15 +42,138 @@
 
              <converters:StringMatchConverter x:Key="StringMatchConverter" />
 
-             <Style x:Key="ChipToggleStyle" TargetType="RadioButton">
-                 <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
-                 <Setter Property="Cursor" Value="Hand" />
-                 <Setter Property="Background" Value="Transparent" />
+              <Style TargetType="ComboBoxItem">
+                  <Setter Property="Background" Value="{DynamicResource AppPopupBrush}" />
+                  <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
+                  <Setter Property="BorderBrush" Value="Transparent" />
+                  <Setter Property="BorderThickness" Value="0" />
+                  <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                  <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                  <Setter Property="VerticalContentAlignment" Value="Center" />
+                  <Setter Property="MinHeight" Value="36" />
+                  <Setter Property="Padding" Value="10,8" />
+                  <Setter Property="Template">
+                      <Setter.Value>
+                          <ControlTemplate TargetType="ComboBoxItem">
+                              <Border x:Name="border"
+                                      Background="{TemplateBinding Background}"
+                                      BorderBrush="{TemplateBinding BorderBrush}"
+                                      BorderThickness="{TemplateBinding BorderThickness}"
+                                      CornerRadius="4"
+                                      Padding="{TemplateBinding Padding}"
+                                      SnapsToDevicePixels="True">
+                                  <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                    TextElement.Foreground="{TemplateBinding Foreground}" />
+                              </Border>
+                              <ControlTemplate.Triggers>
+                                  <Trigger Property="IsMouseOver" Value="True">
+                                      <Setter TargetName="border" Property="Background" Value="{DynamicResource AppToggleInactiveHoverBrush}" />
+                                  </Trigger>
+                                  <Trigger Property="IsHighlighted" Value="True">
+                                      <Setter TargetName="border" Property="Background" Value="{DynamicResource AppToggleInactiveHoverBrush}" />
+                                  </Trigger>
+                                  <Trigger Property="IsSelected" Value="True">
+                                      <Setter TargetName="border" Property="Background" Value="{DynamicResource AppAccentBrush}" />
+                                      <Setter Property="Foreground" Value="{DynamicResource AppAccentForegroundBrush}" />
+                                  </Trigger>
+                                  <MultiTrigger>
+                                      <MultiTrigger.Conditions>
+                                          <Condition Property="IsSelected" Value="True" />
+                                          <Condition Property="IsHighlighted" Value="True" />
+                                      </MultiTrigger.Conditions>
+                                      <Setter TargetName="border" Property="Background" Value="{DynamicResource AppAccentHoverBrush}" />
+                                      <Setter Property="Foreground" Value="{DynamicResource AppAccentForegroundBrush}" />
+                                  </MultiTrigger>
+                                  <Trigger Property="IsEnabled" Value="False">
+                                      <Setter Property="Opacity" Value="0.55" />
+                                  </Trigger>
+                              </ControlTemplate.Triggers>
+                          </ControlTemplate>
+                      </Setter.Value>
+                  </Setter>
+              </Style>
+
+              <Style TargetType="ContextMenu">
+                  <Setter Property="Background" Value="{DynamicResource AppPopupBrush}" />
+                  <Setter Property="BorderBrush" Value="{DynamicResource AppPopupBorderBrush}" />
+                  <Setter Property="BorderThickness" Value="1" />
+                  <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
+                  <Setter Property="Padding" Value="4" />
+                  <Setter Property="SnapsToDevicePixels" Value="True" />
+                  <Setter Property="UseLayoutRounding" Value="True" />
+                  <Setter Property="OverridesDefaultStyle" Value="True" />
+                  <Setter Property="Template">
+                      <Setter.Value>
+                          <ControlTemplate TargetType="ContextMenu">
+                              <Border Background="{TemplateBinding Background}"
+                                      BorderBrush="{TemplateBinding BorderBrush}"
+                                      BorderThickness="{TemplateBinding BorderThickness}"
+                                      CornerRadius="6"
+                                      Padding="{TemplateBinding Padding}"
+                                      SnapsToDevicePixels="True">
+                                  <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"
+                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                              </Border>
+                          </ControlTemplate>
+                      </Setter.Value>
+                  </Setter>
+              </Style>
+
+              <Style TargetType="MenuItem">
+                  <Setter Property="Background" Value="{DynamicResource AppPopupBrush}" />
+                  <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
+                  <Setter Property="BorderThickness" Value="0" />
+                  <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                  <Setter Property="MinHeight" Value="32" />
+                  <Setter Property="Padding" Value="10,7" />
+                  <Setter Property="Template">
+                      <Setter.Value>
+                          <ControlTemplate TargetType="MenuItem">
+                              <Border x:Name="border"
+                                      Background="{TemplateBinding Background}"
+                                      BorderBrush="Transparent"
+                                      BorderThickness="{TemplateBinding BorderThickness}"
+                                      CornerRadius="4"
+                                      Padding="{TemplateBinding Padding}">
+                                  <ContentPresenter ContentSource="Header"
+                                                    RecognizesAccessKey="True"
+                                                    TextElement.Foreground="{TemplateBinding Foreground}"
+                                                    TextElement.FontSize="13" />
+                              </Border>
+                              <ControlTemplate.Triggers>
+                                  <Trigger Property="IsHighlighted" Value="True">
+                                      <Setter TargetName="border" Property="Background" Value="{DynamicResource AppToggleInactiveHoverBrush}" />
+                                  </Trigger>
+                                  <Trigger Property="IsEnabled" Value="False">
+                                      <Setter Property="Opacity" Value="0.55" />
+                                  </Trigger>
+                              </ControlTemplate.Triggers>
+                          </ControlTemplate>
+                      </Setter.Value>
+                  </Setter>
+              </Style>
+
+              <Style TargetType="Separator">
+                  <Setter Property="Template">
+                      <Setter.Value>
+                          <ControlTemplate TargetType="Separator">
+                              <Border Height="1"
+                                      Margin="8,4"
+                                      Background="{DynamicResource AppPopupBorderBrush}"
+                                      Opacity="0.65" />
+                          </ControlTemplate>
+                      </Setter.Value>
+                  </Setter>
+              </Style>
+
+              <Style x:Key="ChipToggleStyle" TargetType="RadioButton">
                   <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
                   <Setter Property="Cursor" Value="Hand" />
                   <Setter Property="Background" Value="Transparent" />
-                  <Setter Property="BorderBrush" Value="{DynamicResource AppInputBorderBrush}" />
+                   <Setter Property="BorderBrush" Value="{DynamicResource AppInputBorderBrush}" />
                   <Setter Property="BorderThickness" Value="1" />
+                  <Setter Property="FontSize" Value="13" />
                   <Setter Property="Padding" Value="12,5" />
                   <Setter Property="Margin" Value="0,0,6,6" />
                   <Setter Property="Template">
@@ -65,7 +188,7 @@
                                   <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" 
                                                     TextElement.Foreground="{TemplateBinding Foreground}"
                                                     TextElement.FontWeight="Medium"
-                                                    TextElement.FontSize="13"/>
+                                                    TextElement.FontSize="{TemplateBinding FontSize}"/>
                               </Border>
                               <ControlTemplate.Triggers>
                                   <Trigger Property="IsMouseOver" Value="True">
@@ -96,6 +219,7 @@
                   <Setter Property="Background" Value="Transparent" />
                   <Setter Property="BorderBrush" Value="{DynamicResource AppInputBorderBrush}" />
                   <Setter Property="BorderThickness" Value="1" />
+                  <Setter Property="FontSize" Value="13" />
                   <Setter Property="Padding" Value="12,5" />
                   <Setter Property="Template">
                       <Setter.Value>
@@ -109,7 +233,7 @@
                                   <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" 
                                                     TextElement.Foreground="{TemplateBinding Foreground}"
                                                     TextElement.FontWeight="Medium"
-                                                    TextElement.FontSize="13"/>
+                                                    TextElement.FontSize="{TemplateBinding FontSize}"/>
                               </Border>
                               <ControlTemplate.Triggers>
                                   <Trigger Property="IsMouseOver" Value="True">

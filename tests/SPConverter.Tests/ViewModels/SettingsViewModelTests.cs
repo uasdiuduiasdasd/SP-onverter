@@ -40,6 +40,11 @@ public class SettingsViewModelTests : IDisposable
         sut.CurrentTheme.Should().Be("System");
         // UseTransparency is true or false depending on OS, but it shouldn't be null
         sut.CurrentLanguageIndex.Should().BeInRange(0, 1);
+        sut.CurrentLanguageName.Should().Be(sut.CurrentLanguageIndex == 1 ? "English" : "Русский");
+        sut.DeleteOriginalsByDefault.Should().BeFalse();
+        sut.ExtractAllPagesByDefault.Should().BeFalse();
+        sut.AlwaysIncludeSubfolders.Should().BeFalse();
+        sut.ShowSupportButtonInHeader.Should().BeTrue();
     }
 
     [Fact]
@@ -56,10 +61,27 @@ public class SettingsViewModelTests : IDisposable
         
         // Since SaveSettings is called async via dispatcher in some cases, or synchronously for Language.
         sut.CurrentLanguageIndex = 1; // triggers synchronous SaveSettings
+        sut.ShowSupportButtonInHeader = false;
 
         // Assert
         File.Exists(SettingsViewModel.SettingsPath).Should().BeTrue();
         var json = File.ReadAllText(SettingsViewModel.SettingsPath);
         json.Should().Contain("\"CurrentLanguageIndex\":1");
+        json.Should().Contain("\"ShowSupportButtonInHeader\":false");
+    }
+
+    [Fact]
+    public void Constructor_ShouldNormalizeInvalidSavedValues()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(SettingsViewModel.SettingsPath)!);
+        File.WriteAllText(
+            SettingsViewModel.SettingsPath,
+            "{\"CurrentTheme\":\"Solarized\",\"CurrentLanguageIndex\":99,\"ShowSupportButtonInHeader\":true}");
+
+        var sut = new SettingsViewModel();
+
+        sut.CurrentTheme.Should().Be("System");
+        sut.CurrentLanguageIndex.Should().Be(0);
+        sut.CurrentLanguageName.Should().Be("Русский");
     }
 }

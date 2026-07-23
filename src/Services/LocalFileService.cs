@@ -3,25 +3,43 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SPConverter.Contracts;
+using SPConverter.Models;
 
 namespace SPConverter.Services;
 
 public class LocalFileService : IFileManagementService
 {
-    // Расширения, которые мы поддерживаем (включая популярные RAW форматы)
-    private static readonly HashSet<string> _supportedExtensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".jpg", ".jpeg", ".png", ".webp", ".avif", ".bmp", ".tiff", ".tif",
-        ".tga", ".cr2", ".cr3", ".nef", ".arw", ".dng", ".heic", ".psd", ".svg", ".gif", ".ico", ".jxl", ".pdf"
-    };
-
     private static readonly object _fileLock = new();
+
+    public ImageScanResult ScanImagesInPath(string path, bool includeSubfolders)
+    {
+        if (File.Exists(path))
+        {
+            bool isSupportedFile = IsSupportedImage(path);
+            return new ImageScanResult
+            {
+                SupportedFiles = isSupportedFile ? new[] { path } : Array.Empty<string>(),
+                SkippedFiles = isSupportedFile ? 0 : 1,
+                SourceExists = true,
+                IsSingleFile = true
+            };
+        }
+
+        if (!Directory.Exists(path))
+        {
+            return new ImageScanResult();
+        }
+
+        return ScanDirectory(path, includeSubfolders);
+    }
 
     public IEnumerable<string> GetImagesInDirectory(string directoryPath, bool includeSubfolders)
     {
-        if (!Directory.Exists(directoryPath))
-            return Enumerable.Empty<string>();
+        return ScanImagesInPath(directoryPath, includeSubfolders).SupportedFiles;
+    }
 
+    private ImageScanResult ScanDirectory(string directoryPath, bool includeSubfolders)
+    {
         var options = new EnumerationOptions
         {
             RecurseSubdirectories = includeSubfolders,
@@ -31,29 +49,56 @@ public class LocalFileService : IFileManagementService
 
         try
         {
-            return Directory.EnumerateFiles(directoryPath, "*.*", options)
-                            .Where(IsSupportedImage);
+            var supportedFiles = new List<string>();
+            int skippedFiles = 0;
+
+            foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.*", options))
+            {
+                if (IsSupportedImage(filePath))
+                {
+                    supportedFiles.Add(filePath);
+                }
+                else
+                {
+                    skippedFiles++;
+                }
+            }
+
+            return new ImageScanResult
+            {
+                SupportedFiles = supportedFiles,
+                SkippedFiles = skippedFiles,
+                HasNestedFolders = HasNestedFolders(directoryPath),
+                SourceExists = true
+            };
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or DirectoryNotFoundException or PathTooLongException)
         {
             System.Diagnostics.Debug.WriteLine($"Directory enumeration error for {directoryPath}: {ex.Message}");
-            return Enumerable.Empty<string>();
+            return new ImageScanResult
+            {
+                HasNestedFolders = HasNestedFolders(directoryPath),
+                SourceExists = true
+            };
         }
     }
 
     public bool IsSupportedImage(string filePath)
     {
-        var ext = Path.GetExtension(filePath);
-        return !string.IsNullOrEmpty(ext) && _supportedExtensions.Contains(ext);
+        return ImageFormatRules.IsSupportedInputFile(filePath);
     }
 
-    public string GetUniqueFilePath(string originalPath, string outputDirectory, string targetExtension)
+    public string ReserveUniqueFilePath(string originalPath, string outputDirectory, string targetSuffix)
     {
-        if (!targetExtension.StartsWith("."))
-            targetExtension = "." + targetExtension;
+        if (string.IsNullOrWhiteSpace(targetSuffix))
+            throw new ArgumentException("Target suffix cannot be empty.", nameof(targetSuffix));
 
         string originalFileName = Path.GetFileNameWithoutExtension(originalPath);
-        string newFilePath = Path.Combine(outputDirectory, originalFileName + targetExtension);
+        string normalizedSuffix = NormalizeTargetSuffix(targetSuffix);
+        string targetFileName = originalFileName + normalizedSuffix;
+        string targetNameWithoutExtension = Path.GetFileNameWithoutExtension(targetFileName);
+        string targetExtension = Path.GetExtension(targetFileName);
+        string newFilePath = Path.Combine(outputDirectory, targetFileName);
 
         lock (_fileLock)
         {
@@ -70,10 +115,30 @@ public class LocalFileService : IFileManagementService
                 }
                 catch (IOException)
                 {
-                    newFilePath = Path.Combine(outputDirectory, $"{originalFileName}_{counter}{targetExtension}");
+                    newFilePath = Path.Combine(outputDirectory, $"{targetNameWithoutExtension}_{counter}{targetExtension}");
                     counter++;
                 }
             }
+        }
+    }
+
+    private static string NormalizeTargetSuffix(string targetSuffix)
+    {
+        return targetSuffix.StartsWith(".") || targetSuffix.StartsWith("_")
+            ? targetSuffix
+            : "." + targetSuffix;
+    }
+
+    private static bool HasNestedFolders(string directoryPath)
+    {
+        try
+        {
+            return Directory.EnumerateDirectories(directoryPath).Any();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or DirectoryNotFoundException or PathTooLongException)
+        {
+            System.Diagnostics.Debug.WriteLine($"Directory subfolder inspection error for {directoryPath}: {ex.Message}");
+            return false;
         }
     }
 }

@@ -5,6 +5,10 @@ obj/
 [Oo]bj/
 [Dd]ist/
 publish*/
+setup/
+artifacts/
+installer/
+tools/dotnet-tools/
 
 # Visual Studio & IDEs
 .vs/
