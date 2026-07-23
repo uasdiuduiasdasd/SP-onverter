@@ -1,4 +1,4 @@
-[Setup]
+﻿[Setup]
 AppId={{5E97D453-6258-45F2-A62E-093BA9B8C533}
 AppName=SP Converter
 AppVersion=1.1
