@@ -15,9 +15,9 @@
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="FontWeight" Value="Normal" />
             <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}" />
-            <Setter Property="Height" Value="44" />
+            <Setter Property="Height" Value="36" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Padding" Value="10,0" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -142,7 +142,7 @@
                         
                         <Button x:Name="LanguageButton"
                                 Grid.Column="2"
-                                Width="136"
+                                Width="112"
                                 Style="{StaticResource LanguageSelectorButtonStyle}"
                                 Click="OnLanguageButtonClick">
                             <Button.Content>

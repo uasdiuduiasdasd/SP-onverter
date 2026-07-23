@@ -16,6 +16,8 @@ public class SettingsPageTests
 
         xaml.Should().Contain("LanguageButton");
         xaml.Should().Contain("LanguageSelectorButtonStyle");
+        xaml.Should().Contain("Property=\"Height\" Value=\"36\"");
+        xaml.Should().Contain("Width=\"112\"");
         xaml.Should().Contain("OnLanguageMenuItemClick");
         xaml.Should().Contain("PreviewMouseWheel=\"OnPageScrollViewerPreviewMouseWheel\"");
         xaml.Should().NotContain("Style=\"{StaticResource SecondaryButtonStyle}\" Click=\"OnLanguageButtonClick\"");
